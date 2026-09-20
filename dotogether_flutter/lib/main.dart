@@ -1,61 +1,84 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'services/app_state.dart';
+import 'screens/welcome_screen.dart';
 
-import 'client.dart';
-import 'screens/greetings_screen.dart';
-
-void main() async {
+void main() {
+  // Ensure Flutter engine integrations are ready
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeClient();
-  runApp(const MyApp());
-}
 
-/// Builds a theme for the given [brightness].
-ThemeData _buildTheme(Brightness brightness) {
-  return ThemeData(
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: Colors.blue,
-      brightness: brightness,
+  // Set default status bar coloring to match our header styling
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+    ),
+  );
+
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => AppState(),
+      child: const DoTogetherApp(),
     ),
   );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+ThemeData _buildTheme(Brightness brightness) {
+  return ThemeData(
+    useMaterial3: true,
+    primaryColor: const Color(0xFF2196F3),
+    scaffoldBackgroundColor: Colors.white,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: const Color(0xFF2196F3),
+      primary: const Color(0xFF2196F3),
+      secondary: Colors.blueAccent,
+      brightness: brightness,
+      surface: Colors.white,
+    ),
+    // Premium Typography and component spacing
+    textTheme: const TextTheme(
+      titleLarge: TextStyle(
+        fontSize: 20.0,
+        fontWeight: FontWeight.bold,
+        letterSpacing: 0.1,
+        color: Colors.black87,
+      ),
+      bodyLarge: TextStyle(
+        fontSize: 16.0,
+        color: Colors.black87,
+        letterSpacing: 0.1,
+      ),
+      bodyMedium: TextStyle(
+        fontSize: 14.0,
+        color: Colors.black54,
+        letterSpacing: 0.1,
+      ),
+    ),
+    appBarTheme: const AppBarTheme(
+      iconTheme: IconThemeData(color: Colors.white),
+      titleTextStyle: TextStyle(
+        color: Colors.white,
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+  );
+}
+
+class DoTogetherApp extends StatelessWidget {
+  const DoTogetherApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Serverpod Demo',
+      title: 'DoTogether',
+      debugShowCheckedModeBanner: false,
       theme: _buildTheme(Brightness.light),
       darkTheme: _buildTheme(Brightness.dark),
       themeMode: ThemeMode.system,
-      home: const MyHomePage(title: 'Serverpod Example'),
-    );
-  }
-}
-
-class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: const GreetingsScreen(),
-      // To test authentication in this example app, uncomment the line below
-      // and comment out the line above. This wraps the GreetingsScreen with a
-      // SignInScreen, which automatically shows a sign-in UI when the user is
-      // not authenticated and displays the GreetingsScreen once they sign in.
-      //
-      // body: SignInScreen(
-      //   child: GreetingsScreen(
-      //     onSignOut: () async {
-      //       await client.auth.signOutDevice();
-      //     },
-      //   ),
-      // ),
+      home: const WelcomeScreen(),
     );
   }
 }
