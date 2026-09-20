@@ -32,8 +32,8 @@ dependencies:
   google_fonts: ^8.1.0
   dotogether_client:
     path: ../dotogether_client
-  serverpod_flutter: 4.0.0
-  serverpod_auth_idp_flutter: 4.0.0
+  serverpod_flutter: 4.0.1
+  serverpod_auth_idp_flutter: 4.0.1
 
 dev_dependencies:
   # Used for agents to drive the app through the Dart MCP
