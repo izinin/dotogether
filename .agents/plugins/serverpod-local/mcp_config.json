@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "serverpod": {
+      "command": "serverpod",
+      "args": ["mcp-server", "--server-dir", "chat_testdrive_server"]
+    },
+    "dart-mcp-server": {
+      "command": "dart",
+      "args": ["mcp-server"]
+    }
+  }
+}

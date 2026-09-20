@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "installations": {
+    "generic": {
+      "relic": {
+        "skills": [
+          {
+            "name": "relic-static-files",
+            "installedAt": "2026-09-19T18:55:13.174547Z"
+          },
+          {
+            "name": "relic-app-setup",
+            "installedAt": "2026-09-19T18:55:13.175365Z"
+          },
+          {
+            "name": "relic-shelf-migration",
+            "installedAt": "2026-09-19T18:55:13.176082Z"
+          },
+          {
+            "name": "relic-routing",
+            "installedAt": "2026-09-19T18:55:13.176763Z"
+          },
+          {
+            "name": "relic-request-response",
+            "installedAt": "2026-09-19T18:55:13.177465Z"
+          },
+          {
+            "name": "relic-middleware",
+            "installedAt": "2026-09-19T18:55:13.178179Z"
+          },
+          {
+            "name": "relic-websockets",
+            "installedAt": "2026-09-19T18:55:13.179007Z"
+          }
+        ]
+      },
+      "serverpod": {
+        "skills": [
+          {
+            "name": "serverpod-logging",
+            "installedAt": "2026-09-19T18:55:13.179937Z"
+          },
+          {
+            "name": "serverpod-endpoints",
+            "installedAt": "2026-09-19T18:55:13.180769Z"
+          },
+          {
+            "name": "serverpod-configuration",
+            "installedAt": "2026-09-19T18:55:13.182791Z"
+          },
+          {
+            "name": "serverpod-modules",
+            "installedAt": "2026-09-19T18:55:13.183566Z"
+          },
+          {
+            "name": "serverpod-caching",
+            "installedAt": "2026-09-19T18:55:13.184376Z"
+          },
+          {
+            "name": "serverpod-auth",
+            "installedAt": "2026-09-19T18:55:13.186691Z"
+          },
+          {
+            "name": "serverpod-health-checks",
+            "installedAt": "2026-09-19T18:55:13.187422Z"
+          },
+          {
+            "name": "serverpod-migrations",
+            "installedAt": "2026-09-19T18:55:13.188205Z"
+          },
+          {
+            "name": "serverpod-database",
+            "installedAt": "2026-09-19T18:55:13.188969Z"
+          },
+          {
+            "name": "serverpod-testing",
+            "installedAt": "2026-09-19T18:55:13.190522Z"
+          },
+          {
+            "name": "serverpod-scheduling",
+            "installedAt": "2026-09-19T18:55:13.191263Z"
+          },
+          {
+            "name": "serverpod-server-events",
+            "installedAt": "2026-09-19T18:55:13.191952Z"
+          },
+          {
+            "name": "serverpod-file-uploads",
+            "installedAt": "2026-09-19T18:55:13.192630Z"
+          },
+          {
+            "name": "serverpod-flutter-frontend",
+            "installedAt": "2026-09-19T18:55:13.193217Z"
+          },
+          {
+            "name": "serverpod-models",
+            "installedAt": "2026-09-19T18:55:13.194652Z"
+          },
+          {
+            "name": "serverpod-overview",
+            "installedAt": "2026-09-19T18:55:13.195281Z"
+          },
+          {
+            "name": "serverpod-streams",
+            "installedAt": "2026-09-19T18:55:13.195738Z"
+          },
+          {
+            "name": "serverpod-webserver",
+            "installedAt": "2026-09-19T18:55:13.197630Z"
+          },
+          {
+            "name": "serverpod-sessions",
+            "installedAt": "2026-09-19T18:55:13.198214Z"
+          },
+          {
+            "name": "serverpod-upgrading",
+            "installedAt": "2026-09-19T18:55:13.198863Z"
+          },
+          {
+            "name": "serverpod-deployment",
+            "installedAt": "2026-09-19T18:55:13.199473Z"
+          }
+        ]
+      },
+      "synchronized": {
+        "skills": [
+          {
+            "name": "synchronized-lock",
+            "installedAt": "2026-09-19T18:55:13.200161Z"
+          }
+        ]
+      },
+      "flutter": {
+        "skills": [
+          {
+            "name": "flutter-implement-json-serialization",
+            "installedAt": "2026-09-19T18:55:13.200663Z"
+          },
+          {
+            "name": "flutter-add-widget-test",
+            "installedAt": "2026-09-19T18:55:13.201116Z"
+          },
+          {
+            "name": "flutter-use-http-package",
+            "installedAt": "2026-09-19T18:55:13.201545Z"
+          },
+          {
+            "name": "flutter-build-responsive-layout",
+            "installedAt": "2026-09-19T18:55:13.202027Z"
+          },
+          {
+            "name": "flutter-apply-architecture-best-practices",
+            "installedAt": "2026-09-19T18:55:13.202481Z"
+          },
+          {
+            "name": "flutter-add-widget-preview",
+            "installedAt": "2026-09-19T18:55:13.202934Z"
+          },
+          {
+            "name": "flutter-setup-declarative-routing",
+            "installedAt": "2026-09-19T18:55:13.203368Z"
+          },
+          {
+            "name": "flutter-fix-layout-issues",
+            "installedAt": "2026-09-19T18:55:13.203833Z"
+          },
+          {
+            "name": "flutter-add-integration-test",
+            "installedAt": "2026-09-19T18:55:13.204280Z"
+          },
+          {
+            "name": "flutter-setup-localization",
+            "installedAt": "2026-09-19T18:55:13.204706Z"
+          }
+        ]
+      }
+    }
+  }
+}
