@@ -3,36 +3,15 @@ import 'package:provider/provider.dart';
 import '../services/app_state.dart';
 import 'home_screen.dart';
 
-class WelcomeScreen extends StatefulWidget {
+class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
-
-  @override
-  State<WelcomeScreen> createState() => _WelcomeScreenState();
-}
-
-class _WelcomeScreenState extends State<WelcomeScreen> {
-  final TextEditingController _phoneController = TextEditingController(
-    text: "358442096093",
-  ); // Pre-filled from screenshot
-  final TextEditingController _codeController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-
-  @override
-  void dispose() {
-    _phoneController.dispose();
-    _codeController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    final activeStep = appState.registrationStep;
 
     // Check if authenticated
-    if (appState.currentPhoneNumber != null &&
-        activeStep == 1 &&
-        !appState.isLoading) {
+    if (appState.currentPhoneNumber != null && !appState.isLoading) {
       // Delay navigation slightly to prevent build-phase route changes
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).pushReplacement(
@@ -46,7 +25,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       appBar: AppBar(
         backgroundColor: const Color(
           0xFF2196F3,
-        ), // Vibrant Blue from screenshot
+        ), // Vibrant Blue
         title: const Text(
           'Welcome',
           style: TextStyle(
@@ -58,391 +37,175 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         centerTitle: true,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
+      body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Step 1 Widget Row
-                _buildStepperRow(
-                  stepNumber: 1,
-                  title: 'Your phone number',
-                  subtitle: 'enter your phone number',
-                  isActive: activeStep >= 1,
-                  isCompleted: activeStep > 1,
-                  child: activeStep == 1
-                      ? Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 16),
-                            const Text(
-                              'Phone number (+x xxx-xxx-xxxx)',
-                              style: TextStyle(
-                                color: Color(0xFF2196F3),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            TextFormField(
-                              controller: _phoneController,
-                              keyboardType: TextInputType.phone,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                letterSpacing: 0.5,
-                              ),
-                              decoration: const InputDecoration(
-                                hintText: '358442096093',
-                                hintStyle: TextStyle(color: Colors.grey),
-                                isDense: true,
-                                contentPadding: EdgeInsets.symmetric(
-                                  vertical: 8,
-                                ),
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Color(0xFF2196F3),
-                                    width: 1.5,
-                                  ),
-                                ),
-                                focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Color(0xFF2196F3),
-                                    width: 2.0,
-                                  ),
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter your phone number';
-                                }
-                                return null;
-                              },
-                            ),
-                            if (appState.phoneError.isNotEmpty) ...[
-                              const SizedBox(height: 8),
-                              Text(
-                                appState.phoneError,
-                                style: const TextStyle(
-                                  color: Colors.red,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: 16),
-                            SizedBox(
-                              width: 140,
-                              height: 42,
-                              child: ElevatedButton(
-                                onPressed: appState.isLoading
-                                    ? null
-                                    : () {
-                                        if (_formKey.currentState!.validate()) {
-                                          appState.sendSmsCode(
-                                            _phoneController.text,
-                                          );
-                                        }
-                                      },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF2196F3),
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  elevation: 2,
-                                ),
-                                child: appState.isLoading && activeStep == 1
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                Colors.white,
-                                              ),
-                                        ),
-                                      )
-                                    : const Text(
-                                        'CONTINUE',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 0.5,
-                                        ),
-                                      ),
-                              ),
-                            ),
-                          ],
-                        )
-                      : null,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Spacer(),
+              // App Logo / Welcome Header
+              Center(
+                child: Container(
+                  width: 90,
+                  height: 90,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2196F3).withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.handshake_outlined,
+                    size: 48,
+                    color: Color(0xFF2196F3),
+                  ),
                 ),
-
-                // Connector 1-2
-                _buildConnectorLine(isCompleted: activeStep > 1),
-
-                // Step 2 Widget Row
-                _buildStepperRow(
-                  stepNumber: 2,
-                  title: 'Requesting SMS verification code',
-                  subtitle: activeStep == 2
-                      ? 'in progress ...'
-                      : (activeStep > 2
-                            ? 'code sent successfully'
-                            : 'pending phone number'),
-                  isActive: activeStep >= 2,
-                  isCompleted: activeStep > 2,
-                  child: activeStep == 2
-                      ? const Padding(
-                          padding: EdgeInsets.only(top: 8.0),
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Color(0xFF2196F3),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 12),
-                              Text(
-                                'Requesting verification code...',
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : null,
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Welcome to Do together',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Collaborate on tasks and projects effortlessly.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const Spacer(),
 
-                // Connector 2-3
-                _buildConnectorLine(isCompleted: activeStep > 2),
+              if (appState.isLoading)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24.0),
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Color(0xFF2196F3),
+                      ),
+                    ),
+                  ),
+                )
+              else ...[
+                // Google Login Button
+                _buildSocialLoginButton(
+                  context: context,
+                  label: 'Login with Google',
+                  icon: _buildGoogleIcon(),
+                  backgroundColor: Colors.white,
+                  textColor: Colors.black87,
+                  borderColor: Colors.grey.shade300,
+                  onPressed: () async {
+                    bool success = await appState.signInWithGoogle();
+                    if (success && context.mounted) {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (context) => const HomeScreen(),
+                        ),
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
 
-                // Step 3 Widget Row
-                _buildStepperRow(
-                  stepNumber: 3,
-                  title: 'Verifying phone number',
-                  subtitle: activeStep == 3
-                      ? 'Check SMS we sent you'
-                      : 'pending SMS code request',
-                  isActive: activeStep >= 3,
-                  isCompleted: activeStep > 3,
-                  child: activeStep == 3
-                      ? Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 16),
-                            const Text(
-                              '6-digit verification code',
-                              style: TextStyle(
-                                color: Color(0xFF2196F3),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            TextFormField(
-                              controller: _codeController,
-                              keyboardType: TextInputType.number,
-                              maxLength: 6,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                letterSpacing: 4.0,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              decoration: const InputDecoration(
-                                hintText: '123456',
-                                hintStyle: TextStyle(
-                                  color: Colors.grey,
-                                  letterSpacing: 0,
-                                ),
-                                counterText: '',
-                                isDense: true,
-                                contentPadding: EdgeInsets.symmetric(
-                                  vertical: 8,
-                                ),
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Color(0xFF2196F3),
-                                    width: 1.5,
-                                  ),
-                                ),
-                                focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Color(0xFF2196F3),
-                                    width: 2.0,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            if (appState.smsCodeError.isNotEmpty) ...[
-                              const SizedBox(height: 8),
-                              Text(
-                                appState.smsCodeError,
-                                style: const TextStyle(
-                                  color: Colors.red,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                SizedBox(
-                                  width: 140,
-                                  height: 42,
-                                  child: ElevatedButton(
-                                    onPressed: appState.isLoading
-                                        ? null
-                                        : () async {
-                                            bool success = await appState
-                                                .verifySmsCode(
-                                                  _codeController.text,
-                                                );
-                                            if (success && context.mounted) {
-                                              Navigator.of(
-                                                context,
-                                              ).pushReplacement(
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      const HomeScreen(),
-                                                ),
-                                              );
-                                            }
-                                          },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF2196F3),
-                                      foregroundColor: Colors.white,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      elevation: 2,
-                                    ),
-                                    child: appState.isLoading
-                                        ? const SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              valueColor:
-                                                  AlwaysStoppedAnimation<Color>(
-                                                    Colors.white,
-                                                  ),
-                                            ),
-                                          )
-                                        : const Text(
-                                            'VERIFY',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              letterSpacing: 0.5,
-                                            ),
-                                          ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                TextButton(
-                                  onPressed: appState.isLoading
-                                      ? null
-                                      : () => appState.resetStepper(),
-                                  child: const Text(
-                                    'GO BACK',
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        )
-                      : null,
+                // Apple Login Button
+                _buildSocialLoginButton(
+                  context: context,
+                  label: 'Login with Apple',
+                  icon: const Icon(
+                    Icons.apple,
+                    size: 26,
+                    color: Colors.white,
+                  ),
+                  backgroundColor: Colors.black,
+                  textColor: Colors.white,
+                  borderColor: Colors.black,
+                  onPressed: () async {
+                    bool success = await appState.signInWithApple();
+                    if (success && context.mounted) {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (context) => const HomeScreen(),
+                        ),
+                      );
+                    }
+                  },
                 ),
               ],
-            ),
+              const SizedBox(height: 24),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildStepperRow({
-    required int stepNumber,
-    required String title,
-    required String subtitle,
-    required bool isActive,
-    required bool isCompleted,
-    Widget? child,
+  Widget _buildSocialLoginButton({
+    required BuildContext context,
+    required String label,
+    required Widget icon,
+    required Color backgroundColor,
+    required Color textColor,
+    required Color borderColor,
+    required VoidCallback onPressed,
   }) {
-    Color circleColor = Colors.grey.shade400;
-    Color titleColor = Colors.grey.shade600;
-    Color subtitleColor = Colors.grey.shade500;
-
-    if (isActive) {
-      circleColor = Colors.grey.shade700;
-      titleColor = Colors.black87;
-      subtitleColor = Colors.grey.shade700;
-    }
-    if (isCompleted) {
-      circleColor = const Color(0xFF4CAF50); // Completed green
-    }
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Number Circle
-        Container(
-          width: 36,
-          height: 36,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(color: circleColor, shape: BoxShape.circle),
-          child: Text(
-            stepNumber.toString(),
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 15,
+    return SizedBox(
+      height: 52,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          backgroundColor: backgroundColor,
+          foregroundColor: textColor,
+          side: BorderSide(color: borderColor, width: 1.5),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          elevation: 0,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            icon,
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.2,
+              ),
             ),
-          ),
+          ],
         ),
-        const SizedBox(width: 16),
-        // Step details
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  color: titleColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: TextStyle(color: subtitleColor, fontSize: 13),
-              ),
-              ?child,
-            ],
-          ),
-        ),
-      ],
+      ),
     );
   }
 
-  Widget _buildConnectorLine({required bool isCompleted}) {
+  Widget _buildGoogleIcon() {
     return Container(
-      width: 2,
-      height: 48,
-      margin: const EdgeInsets.only(left: 17, top: 4, bottom: 4),
-      color: isCompleted ? const Color(0xFF4CAF50) : Colors.grey.shade300,
+      width: 24,
+      height: 24,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white,
+      ),
+      alignment: Alignment.center,
+      child: const Text(
+        'G',
+        style: TextStyle(
+          color: Color(0xFF4285F4),
+          fontWeight: FontWeight.w900,
+          fontSize: 20,
+          fontFamily: 'sans-serif',
+        ),
+      ),
     );
   }
 }

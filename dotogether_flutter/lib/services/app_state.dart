@@ -194,6 +194,34 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  /// Sign in with Google
+  Future<bool> signInWithGoogle() async {
+    _isLoading = true;
+    notifyListeners();
+
+    await Future.delayed(const Duration(milliseconds: 500));
+    _currentUserUid = 'google_user_uid';
+    _currentPhoneNumber = '+358442096093'; // Preserve user context for existing demo projects
+    _loadMockInitialData();
+    _isLoading = false;
+    notifyListeners();
+    return true;
+  }
+
+  /// Sign in with Apple
+  Future<bool> signInWithApple() async {
+    _isLoading = true;
+    notifyListeners();
+
+    await Future.delayed(const Duration(milliseconds: 500));
+    _currentUserUid = 'apple_user_uid';
+    _currentPhoneNumber = '+358442096093'; // Preserve user context for existing demo projects
+    _loadMockInitialData();
+    _isLoading = false;
+    notifyListeners();
+    return true;
+  }
+
   /// Reset the verification stepper state
   void resetStepper() {
     _registrationStep = 1;
