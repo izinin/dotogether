@@ -1,0 +1,58 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Serverpod Server",
+            "request": "launch",
+            "type": "dart",
+            "program": "bin/main.dart",
+            "cwd": "${workspaceFolder}/dotogether_server"
+        },
+        {
+            "name": "dotogether",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "dotogether_client",
+            "cwd": "dotogether_client",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "dotogether_flutter",
+            "cwd": "dotogether_flutter",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "dotogether_flutter (profile mode)",
+            "cwd": "dotogether_flutter",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "dotogether_flutter (release mode)",
+            "cwd": "dotogether_flutter",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "dotogether_server",
+            "cwd": "dotogether_server",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "skills",
+            "cwd": ".dart_skills/repos/flutter/skills",
+            "request": "launch",
+            "type": "dart"
+        }
+    ]
+}

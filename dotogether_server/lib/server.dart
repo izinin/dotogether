@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:serverpod_auth_idp_server/core.dart';
@@ -14,6 +15,19 @@ void run(List<String> args) async {
   // Initialize Serverpod. The generated Serverpod class is already connected
   // with your project's generated code.
   final pod = Serverpod(args);
+  GoogleIdpConfig? googleConfig;
+
+  if (pod.getPassword('googleClientSecret') != null) {
+    googleConfig = GoogleIdpConfigFromPasswords();
+  } else {
+    final jsonString = File(
+      'config/client_web.apps.googleusercontent.com.json',
+    ).readAsStringSync();
+    final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
+    googleConfig = GoogleIdpConfig(
+      clientSecret: GoogleClientSecret.fromJson(jsonMap),
+    );
+  }
 
   // Initialize authentication services for the server.
   // Token managers will be used to validate and issue authentication keys,
@@ -29,18 +43,7 @@ void run(List<String> args) async {
         appDisplayName: 'dotogether',
       ),
       // Configure Google identity provider.
-      if (pod.getPassword('googleClientSecret') != null)
-        GoogleIdpConfigFromPasswords()
-      else
-        GoogleIdpConfig(
-          clientSecret: GoogleClientSecret.fromJson({
-            'web': {
-              'client_id': 'placeholder_client_id.apps.googleusercontent.com',
-              'client_secret': 'placeholder_client_secret',
-              'redirect_uris': ['http://localhost:8080/auth/google/callback'],
-            },
-          }),
-        ),
+      googleConfig,
     ],
   );
 

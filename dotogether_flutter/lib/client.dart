@@ -29,4 +29,8 @@ Future<void> initializeClient() async {
     ..connectivityMonitor = FlutterConnectivityMonitor()
     ..authSessionManager = FlutterAuthSessionManager();
   unawaited(client.auth.initialize());
+  client.auth.initializeGoogleSignIn(
+    clientId: "908030423310-ok7ao1su0rvi796ga57a6mg10m1agl3n.apps.googleusercontent.com",
+    redirectUri: "http://localhost:8080/auth/google/callback",
+  );
 }
