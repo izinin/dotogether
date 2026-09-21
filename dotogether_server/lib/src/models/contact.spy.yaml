@@ -1,0 +1,21 @@
+class: Contact
+table: contact
+fields:
+  ### User ID of the contact owner
+  ownerId: UuidValue
+  ### Contact name from phone book
+  name: String
+  ### Contact normalized phone number
+  phoneNumber: String
+  ### Whether this contact matches a registered user in DoTogether
+  isRegistered: bool, default=false
+  ### Registered AuthUser ID if matched
+  registeredUserId: UuidValue?
+  ### When this contact was synced
+  createdAt: DateTime, default=now
+
+indexes:
+  contact_owner_idx:
+    fields: ownerId
+  contact_phone_idx:
+    fields: phoneNumber

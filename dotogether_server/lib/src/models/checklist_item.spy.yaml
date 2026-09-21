@@ -1,0 +1,17 @@
+class: ChecklistItem
+table: checklist_item
+fields:
+  ### The project this item belongs to
+  project: Project?, relation(onDelete=Cascade)
+  ### Task / item description
+  title: String
+  ### Completion status
+  isCompleted: bool, default=false
+  ### Ordering index of the checklist item
+  sortOrder: int, default=0
+  ### Timestamp when the item was checked off
+  completedAt: DateTime?
+
+indexes:
+  checklist_item_project_idx:
+    fields: projectId

@@ -11,8 +11,11 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _ida;
+import 'package:dotogether_client/src/protocol/app_user_data.dart' as _i6ey7ul7;
+import 'package:dotogether_client/src/protocol/contact.dart' as _ilzv33bz;
 import 'package:dotogether_client/src/protocol/greetings/greeting.dart'
     as _ixhj6wzh;
+import 'package:dotogether_client/src/protocol/project.dart' as _ie83d1fr;
 import 'package:http/http.dart' as _i85jenna;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _iacc;
@@ -204,6 +207,62 @@ class EndpointEmailIdp extends _iaic.EndpointEmailIdpBase {
   );
 }
 
+/// By extending [GoogleIdpBaseEndpoint], the Google identity provider endpoints
+/// are made available on the server and enable Google Sign-In on the client.
+/// {@category Endpoint}
+class EndpointGoogleIdp extends _iaic.EndpointGoogleIdpBase {
+  EndpointGoogleIdp(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'googleIdp';
+
+  /// Validates a Google ID token and either logs in the associated user or
+  /// creates a new user account if the Google account ID is not yet known.
+  ///
+  /// If a new user is created an associated [UserProfile] is also created.
+  @override
+  _ida.Future<_iacc.AuthSuccess> login({
+    required String idToken,
+    required String? accessToken,
+  }) => caller.callServerEndpoint<_iacc.AuthSuccess>(
+    'googleIdp',
+    'login',
+    {
+      'idToken': idToken,
+      'accessToken': accessToken,
+    },
+  );
+
+  /// Validates a Google authorization code from the web OAuth2 PKCE flow and
+  /// either logs in the associated user or creates a new account.
+  ///
+  /// This is the web counterpart of [login], which accepts an ID token directly
+  /// (used on native platforms via the `google_sign_in` package).
+  ///
+  /// If a new user is created an associated [UserProfile] is also created.
+  @override
+  _ida.Future<_iacc.AuthSuccess> loginWithCode({
+    required String code,
+    required String codeVerifier,
+    required String redirectUri,
+  }) => caller.callServerEndpoint<_iacc.AuthSuccess>(
+    'googleIdp',
+    'loginWithCode',
+    {
+      'code': code,
+      'codeVerifier': codeVerifier,
+      'redirectUri': redirectUri,
+    },
+  );
+
+  @override
+  _ida.Future<bool> hasAccount() => caller.callServerEndpoint<bool>(
+    'googleIdp',
+    'hasAccount',
+    {},
+  );
+}
+
 /// By extending [RefreshJwtTokensEndpoint], the JWT token refresh endpoint
 /// is made available on the server and enables automatic token refresh on the client.
 /// {@category Endpoint}
@@ -246,6 +305,142 @@ class EndpointJwtRefresh extends _iacc.EndpointRefreshJwtTokens {
       );
 }
 
+/// {@category Endpoint}
+class EndpointContact extends _isc.EndpointRef {
+  EndpointContact(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'contact';
+
+  /// Syncs phone contacts to the database and checks which contacts match registered app users.
+  _ida.Future<List<_ilzv33bz.Contact>> syncContacts(
+    List<_ilzv33bz.Contact> inputContacts,
+  ) => caller.callServerEndpoint<List<_ilzv33bz.Contact>>(
+    'contact',
+    'syncContacts',
+    {'inputContacts': inputContacts},
+  );
+
+  /// Returns all synced contacts for current user.
+  _ida.Future<List<_ilzv33bz.Contact>> getContacts() =>
+      caller.callServerEndpoint<List<_ilzv33bz.Contact>>(
+        'contact',
+        'getContacts',
+        {},
+      );
+}
+
+/// {@category Endpoint}
+class EndpointProject extends _isc.EndpointRef {
+  EndpointProject(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'project';
+
+  /// Creates a new Project and its interactive checklist items.
+  /// If the assignee phone matches an existing registered user, executorId is set immediately.
+  _ida.Future<_ie83d1fr.Project> createProject({
+    required String title,
+    required String description,
+    required String assigneeName,
+    required String assigneePhone,
+    required List<String> checklistTitles,
+  }) => caller.callServerEndpoint<_ie83d1fr.Project>(
+    'project',
+    'createProject',
+    {
+      'title': title,
+      'description': description,
+      'assigneeName': assigneeName,
+      'assigneePhone': assigneePhone,
+      'checklistTitles': checklistTitles,
+    },
+  );
+
+  /// Returns all projects created by the current user (Task Owner).
+  _ida.Future<List<_ie83d1fr.Project>> getCreatedProjects() =>
+      caller.callServerEndpoint<List<_ie83d1fr.Project>>(
+        'project',
+        'getCreatedProjects',
+        {},
+      );
+
+  /// Returns all projects assigned to the current user (Task Executor).
+  /// Matches either by executorId or by the user's registered phone number.
+  _ida.Future<List<_ie83d1fr.Project>> getReceivedProjects() =>
+      caller.callServerEndpoint<List<_ie83d1fr.Project>>(
+        'project',
+        'getReceivedProjects',
+        {},
+      );
+
+  /// Returns details of a specific project including all its checklist items.
+  _ida.Future<_ie83d1fr.Project?> getProjectDetails(int projectId) =>
+      caller.callServerEndpoint<_ie83d1fr.Project?>(
+        'project',
+        'getProjectDetails',
+        {'projectId': projectId},
+      );
+
+  /// Toggles completion of a checklist item and automatically recalculates
+  /// the overall project completion percentage and overallStatus ('pending', 'in_progress', 'completed').
+  _ida.Future<_ie83d1fr.Project> toggleChecklistItem({
+    required int itemId,
+    required bool isCompleted,
+  }) => caller.callServerEndpoint<_ie83d1fr.Project>(
+    'project',
+    'toggleChecklistItem',
+    {
+      'itemId': itemId,
+      'isCompleted': isCompleted,
+    },
+  );
+
+  /// Allows explicit update of project status.
+  _ida.Future<_ie83d1fr.Project> updateProjectStatus({
+    required int projectId,
+    required String status,
+  }) => caller.callServerEndpoint<_ie83d1fr.Project>(
+    'project',
+    'updateProjectStatus',
+    {
+      'projectId': projectId,
+      'status': status,
+    },
+  );
+}
+
+/// {@category Endpoint}
+class EndpointUser extends _isc.EndpointRef {
+  EndpointUser(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'user';
+
+  /// Returns the current authenticated user's profile and extra data (phone, token).
+  _ida.Future<_i6ey7ul7.AppUserData?> getProfile() =>
+      caller.callServerEndpoint<_i6ey7ul7.AppUserData?>(
+        'user',
+        'getProfile',
+        {},
+      );
+
+  /// Updates or creates the user's phone number and push notification device token.
+  /// When phone number is registered/updated, pending projects assigned to this phone number
+  /// are automatically linked to this user as executorId.
+  _ida.Future<_i6ey7ul7.AppUserData> updateProfile({
+    String? phoneNumber,
+    String? deviceToken,
+  }) => caller.callServerEndpoint<_i6ey7ul7.AppUserData>(
+    'user',
+    'updateProfile',
+    {
+      'phoneNumber': phoneNumber,
+      'deviceToken': deviceToken,
+    },
+  );
+}
+
 /// This is an example endpoint that returns a greeting message through
 /// its [hello] method.
 /// {@category Endpoint}
@@ -266,13 +461,13 @@ class EndpointGreeting extends _isc.EndpointRef {
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _iaic.Caller(client);
     serverpod_auth_core = _iacc.Caller(client);
+    serverpod_auth_idp = _iaic.Caller(client);
   }
 
-  late final _iaic.Caller serverpod_auth_idp;
-
   late final _iacc.Caller serverpod_auth_core;
+
+  late final _iaic.Caller serverpod_auth_idp;
 }
 
 class Client extends _isc.ServerpodClientShared {
@@ -303,14 +498,26 @@ class Client extends _isc.ServerpodClientShared {
          httpClientOverride: httpClientOverride,
        ) {
     emailIdp = EndpointEmailIdp(this);
+    googleIdp = EndpointGoogleIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
+    contact = EndpointContact(this);
+    project = EndpointProject(this);
+    user = EndpointUser(this);
     greeting = EndpointGreeting(this);
     modules = Modules(this);
   }
 
   late final EndpointEmailIdp emailIdp;
 
+  late final EndpointGoogleIdp googleIdp;
+
   late final EndpointJwtRefresh jwtRefresh;
+
+  late final EndpointContact contact;
+
+  late final EndpointProject project;
+
+  late final EndpointUser user;
 
   late final EndpointGreeting greeting;
 
@@ -319,13 +526,17 @@ class Client extends _isc.ServerpodClientShared {
   @override
   Map<String, _isc.EndpointRef> get endpointRefLookup => {
     'emailIdp': emailIdp,
+    'googleIdp': googleIdp,
     'jwtRefresh': jwtRefresh,
+    'contact': contact,
+    'project': project,
+    'user': user,
     'greeting': greeting,
   };
 
   @override
   Map<String, _isc.ModuleEndpointCaller> get moduleLookup => {
-    'serverpod_auth_idp': modules.serverpod_auth_idp,
     'serverpod_auth_core': modules.serverpod_auth_core,
+    'serverpod_auth_idp': modules.serverpod_auth_idp,
   };
 }

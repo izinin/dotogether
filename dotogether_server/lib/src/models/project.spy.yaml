@@ -1,0 +1,31 @@
+class: Project
+table: project
+fields:
+  ### Title of the project or collaborative task
+  title: String
+  ### Detailed notes or description
+  description: String, default=''
+  ### User ID of the creator / Task Owner
+  ownerId: UuidValue
+  ### Phone number of the creator
+  ownerPhone: String?
+  ### User ID of the Task Executor if registered
+  executorId: UuidValue?
+  ### Contact phone number of the assignee
+  assigneePhone: String
+  ### Display name of the assignee
+  assigneeName: String
+  ### Overall progress status: 'pending', 'in_progress', 'completed'
+  overallStatus: String, default='pending'
+  ### When the project was created
+  createdAt: DateTime, default=now
+  ### Interactive checklist items
+  checklistItems: List<ChecklistItem>?, relation
+
+indexes:
+  project_owner_id_idx:
+    fields: ownerId
+  project_executor_id_idx:
+    fields: executorId
+  project_assignee_phone_idx:
+    fields: assigneePhone

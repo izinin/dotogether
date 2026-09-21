@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:serverpod_auth_idp_server/core.dart';
 import 'package:serverpod_auth_idp_server/providers/email.dart';
+import 'package:serverpod_auth_idp_server/providers/google.dart';
 import 'package:serverpod_cloud_storage/serverpod_cloud_storage.dart';
 
 import 'src/cache_busting.dart';
@@ -24,14 +25,22 @@ void run(List<String> args) async {
     ],
     identityProviderBuilders: [
       // Configure the email identity provider for email/password authentication.
-      // The default setup works with Serverpod Cloud without configuration. In
-      // development the verification codes are logged to the console, and in
-      // staging and production they are sent through the Serverpod Cloud email
-      // service. If you want to use a custom provider for sending emails, use
-      // `EmailIdpConfigFromPasswords`.
       ServerpodCloudEmailIdpConfig(
         appDisplayName: 'dotogether',
       ),
+      // Configure Google identity provider.
+      if (pod.getPassword('googleClientSecret') != null)
+        GoogleIdpConfigFromPasswords()
+      else
+        GoogleIdpConfig(
+          clientSecret: GoogleClientSecret.fromJson({
+            'web': {
+              'client_id': 'placeholder_client_id.apps.googleusercontent.com',
+              'client_secret': 'placeholder_client_secret',
+              'redirect_uris': ['http://localhost:8080/auth/google/callback'],
+            },
+          }),
+        ),
     ],
   );
 

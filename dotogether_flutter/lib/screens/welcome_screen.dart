@@ -109,6 +109,12 @@ class WelcomeScreen extends StatelessWidget {
                           builder: (context) => const HomeScreen(),
                         ),
                       );
+                    } else if (!success && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Google Sign In failed or cancelled.'),
+                        ),
+                      );
                     }
                   },
                 ),

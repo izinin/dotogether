@@ -7,7 +7,24 @@ emailIdp:
   - verifyPasswordResetCode:
   - finishPasswordReset:
   - hasAccount:
+googleIdp:
+  - login:
+  - loginWithCode:
+  - hasAccount:
 jwtRefresh:
   - refreshAccessToken:
+contact:
+  - syncContacts:
+  - getContacts:
+project:
+  - createProject:
+  - getCreatedProjects:
+  - getReceivedProjects:
+  - getProjectDetails:
+  - toggleChecklistItem:
+  - updateProjectStatus:
+user:
+  - getProfile:
+  - updateProfile:
 greeting:
   - hello:

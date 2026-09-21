@@ -4,9 +4,14 @@ import 'package:provider/provider.dart';
 import 'services/app_state.dart';
 import 'screens/welcome_screen.dart';
 
-void main() {
+import 'client.dart';
+
+void main() async {
   // Ensure Flutter engine integrations are ready
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Serverpod Client
+  await initializeClient();
 
   // Set default status bar coloring to match our header styling
   SystemChrome.setSystemUIOverlayStyle(

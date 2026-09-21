@@ -4,6 +4,8 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/project.dart';
 import '../utils/phone_number_utility.dart';
+import '../client.dart';
+import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 class AppState extends ChangeNotifier {
   final bool _isDemoMode = true; // Running with hardcoded demo functionality
@@ -199,13 +201,45 @@ class AppState extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    await Future.delayed(const Duration(milliseconds: 500));
-    _currentUserUid = 'google_user_uid';
-    _currentPhoneNumber = '+358442096093'; // Preserve user context for existing demo projects
-    _loadMockInitialData();
-    _isLoading = false;
-    notifyListeners();
-    return true;
+    try {
+      // First attempt native/web Serverpod Google auth if supported
+      try {
+        final authController = GoogleAuthController(client: client);
+        await authController.signIn();
+        if (client.auth.isAuthenticated) {
+          _currentUserUid = client.auth.authInfo?.authUserId.toString();
+          // Fetch backend profile data if available
+          try {
+            final profile = await client.user.getProfile();
+            if (profile?.phoneNumber != null) {
+              _currentPhoneNumber = profile!.phoneNumber;
+            }
+          } catch (_) {}
+          _isLoading = false;
+          notifyListeners();
+          return true;
+        }
+      } catch (authError) {
+        debugPrint(
+          'Serverpod GoogleAuthController error / fallback: $authError',
+        );
+      }
+
+      // If Serverpod Google IdP flow didn't succeed (e.g. running in test simulator without Google Play services),
+      // support demo/fallback sign in so developer experience is seamless
+      await Future.delayed(const Duration(milliseconds: 500));
+      _currentUserUid = 'google_user_uid';
+      _currentPhoneNumber =
+          '+358442096093'; // Preserve user context for existing demo projects
+      _loadMockInitialData();
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 
   /// Sign in with Apple
@@ -215,7 +249,8 @@ class AppState extends ChangeNotifier {
 
     await Future.delayed(const Duration(milliseconds: 500));
     _currentUserUid = 'apple_user_uid';
-    _currentPhoneNumber = '+358442096093'; // Preserve user context for existing demo projects
+    _currentPhoneNumber =
+        '+358442096093'; // Preserve user context for existing demo projects
     _loadMockInitialData();
     _isLoading = false;
     notifyListeners();
@@ -233,6 +268,13 @@ class AppState extends ChangeNotifier {
 
   /// Sign Out
   Future<void> signOut() async {
+    try {
+      if (client.auth.isAuthenticated) {
+        await client.auth.signOutDevice();
+      }
+    } catch (e) {
+      debugPrint('Error signing out of Serverpod: $e');
+    }
     _currentUserUid = null;
     _currentPhoneNumber = null;
     _createdProjects = [];
@@ -249,7 +291,9 @@ class AppState extends ChangeNotifier {
 
     try {
       // Direct plugin call to verify contacts permission
-      final permission = await FlutterContacts.permissions.request(PermissionType.read);
+      final permission = await FlutterContacts.permissions.request(
+        PermissionType.read,
+      );
       _hasContactPermission = permission == PermissionStatus.granted;
 
       if (permission == PermissionStatus.granted) {

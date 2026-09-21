@@ -143,7 +143,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
                       final phone = contact.phones.isNotEmpty
                           ? contact.phones.first.number
                           : 'No Phone Number';
-                      final firstLetter = displayName == null || displayName.isEmpty
+                      final firstLetter =
+                          displayName == null || displayName.isEmpty
                           ? '?'
                           : displayName[0].toUpperCase();
 
@@ -163,7 +164,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                           ),
                         ),
                         title: Text(
-                          displayName?? 'Unknown',
+                          displayName ?? 'Unknown',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -192,7 +193,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => CreateProjectScreen(
-                                contactName: displayName?? 'Unknown',
+                                contactName: displayName ?? 'Unknown',
                                 contactPhone: phone,
                               ),
                             ),
