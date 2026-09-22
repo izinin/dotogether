@@ -10,17 +10,8 @@ import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 class AppState extends ChangeNotifier {
   bool _isInitialized = false;
 
-  // Authentication State
-  String? _currentUserUid;
   String? _currentPhoneNumber;
   bool _isLoading = false;
-
-  // Stepper Registration State
-  int _registrationStep =
-      1; // 1: Input phone, 2: Loading/SMS code sent in progress, 3: Verify code
-  String _registrationPhone = '';
-  String _smsCodeError = '';
-  String _phoneError = '';
 
   // Contacts State
   List<Contact> _contacts = [];
@@ -37,14 +28,8 @@ class AppState extends ChangeNotifier {
 
   // Getters
   bool get isInitialized => _isInitialized;
-  String? get currentUserUid => _currentUserUid;
   String? get currentPhoneNumber => _currentPhoneNumber;
   bool get isLoading => _isLoading;
-
-  int get registrationStep => _registrationStep;
-  String get registrationPhone => _registrationPhone;
-  String get smsCodeError => _smsCodeError;
-  String get phoneError => _phoneError;
 
   List<Contact> get contacts => _contacts;
   bool get isLoadingContacts => _isLoadingContacts;
@@ -68,7 +53,6 @@ class AppState extends ChangeNotifier {
   void _loadMockInitialData() {
     _currentPhoneNumber =
         "+358442096093"; // Matches the Finnish phone number in the stepper screenshot
-    _currentUserUid = 'me_uid';
     _mockProjects.clear();
 
     _mockProjects.addAll([
@@ -152,57 +136,6 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ================= AUTHENTICATION FLOW =================
-
-  /// Step 1: Send SMS Verification Code
-  Future<void> sendSmsCode(String rawPhoneNumber) async {
-    _isLoading = true;
-    _phoneError = '';
-    _registrationStep = 2; // Move to step 2 (Requesting SMS...)
-    notifyListeners();
-
-    _registrationPhone = PhoneNumberUtility.normalize(rawPhoneNumber);
-
-    // Simulate network request
-    await Future.delayed(const Duration(seconds: 1));
-    _isLoading = false;
-    _registrationStep = 3; // Move to step 3 (Enter verification code)
-    notifyListeners();
-  }
-
-  /// Step 3: Verify the SMS Code and Sign In
-  Future<bool> verifySmsCode(String smsCode) async {
-    _isLoading = true;
-    _smsCodeError = '';
-    notifyListeners();
-
-    await Future.delayed(const Duration(milliseconds: 500));
-    // In demo mode, accept code '123456' or any 6-digit code
-    if (smsCode.length == 6) {
-      _currentPhoneNumber = _registrationPhone;
-      _currentUserUid = 'me_uid';
-      _loadMockInitialData(); // Reload projects with the registered phone
-      _isLoading = false;
-      _registrationStep = 1;
-      notifyListeners();
-      return true;
-    } else {
-      _isLoading = false;
-      _smsCodeError = "Invalid verification code. Enter a 6-digit number.";
-      notifyListeners();
-      return false;
-    }
-  }
-
-  /// Reset the verification stepper state
-  void resetStepper() {
-    _registrationStep = 1;
-    _phoneError = '';
-    _smsCodeError = '';
-    _isLoading = false;
-    notifyListeners();
-  }
-
   /// Sign Out
   Future<void> signOut() async {
     try {
@@ -212,7 +145,6 @@ class AppState extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error signing out of Serverpod: $e');
     }
-    _currentUserUid = null;
     _currentPhoneNumber = null;
     _createdProjects = [];
     _receivedProjects = [];
@@ -295,7 +227,7 @@ class AppState extends ChangeNotifier {
       id: projectId,
       title: title.trim(),
       description: description.trim(),
-      creatorUid: _currentUserUid ?? 'me_uid',
+      creatorUid: 'todo_me_uid',
       creatorPhone: _currentPhoneNumber ?? '+358442096093',
       assigneePhone: normalizedPhone,
       assigneeName: assigneeName,
