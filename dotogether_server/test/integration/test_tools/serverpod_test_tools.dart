@@ -16,8 +16,6 @@ import 'dart:io' as _idi;
 import 'package:dotogether_server/src/generated/app_user_data.dart'
     as _ir08hrjl;
 import 'package:dotogether_server/src/generated/contact.dart' as _imw5cso4;
-import 'package:dotogether_server/src/generated/greetings/greeting.dart'
-    as _id42y603;
 import 'package:dotogether_server/src/generated/project.dart' as _i4y9nq59;
 import 'package:serverpod/serverpod.dart' as _is;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
@@ -162,8 +160,6 @@ class TestEndpoints {
   late final _ProjectEndpoint project;
 
   late final _UserEndpoint user;
-
-  late final _GreetingEndpoint greeting;
 }
 
 class _InternalTestEndpoints extends TestEndpoints
@@ -194,10 +190,6 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     user = _UserEndpoint(
-      endpoints,
-      serializationManager,
-    );
-    greeting = _GreetingEndpoint(
       endpoints,
       serializationManager,
     );
@@ -986,48 +978,6 @@ class _UserEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<_ir08hrjl.AppUserData>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-}
-
-class _GreetingEndpoint {
-  _GreetingEndpoint(
-    this._endpointDispatch,
-    this._serializationManager,
-  );
-
-  final _is.EndpointDispatch _endpointDispatch;
-
-  final _is.SerializationManager _serializationManager;
-
-  _ida.Future<_id42y603.Greeting> hello(
-    _ist.TestSessionBuilder sessionBuilder,
-    String name,
-  ) async {
-    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'greeting',
-            method: 'hello',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'greeting',
-          methodName: 'hello',
-          parameters: _ist.testObjectToJson({'name': name}),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _ida.Future<_id42y603.Greeting>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

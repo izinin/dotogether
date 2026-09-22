@@ -21,12 +21,10 @@ import 'package:serverpod_client/serverpod_client.dart' as _isc;
 import 'app_user_data.dart' as _ieco5lxt;
 import 'checklist_item.dart' as _ifywsnp6;
 import 'contact.dart' as _id7ivncr;
-import 'greetings/greeting.dart' as _izw8z7ou;
 import 'project.dart' as _ifiazq2p;
 export 'app_user_data.dart';
 export 'checklist_item.dart';
 export 'contact.dart';
-export 'greetings/greeting.dart';
 export 'project.dart';
 export 'client.dart';
 
@@ -73,9 +71,6 @@ class Protocol extends _isc.SerializationManager {
     if (t == _id7ivncr.Contact) {
       return _id7ivncr.Contact.fromJson(data) as T;
     }
-    if (t == _izw8z7ou.Greeting) {
-      return _izw8z7ou.Greeting.fromJson(data) as T;
-    }
     if (t == _ifiazq2p.Project) {
       return _ifiazq2p.Project.fromJson(data) as T;
     }
@@ -88,9 +83,6 @@ class Protocol extends _isc.SerializationManager {
     }
     if (t == _isc.getType<_id7ivncr.Contact?>()) {
       return (data != null ? _id7ivncr.Contact.fromJson(data) : null) as T;
-    }
-    if (t == _isc.getType<_izw8z7ou.Greeting?>()) {
-      return (data != null ? _izw8z7ou.Greeting.fromJson(data) : null) as T;
     }
     if (t == _isc.getType<_ifiazq2p.Project?>()) {
       return (data != null ? _ifiazq2p.Project.fromJson(data) : null) as T;
@@ -138,7 +130,6 @@ class Protocol extends _isc.SerializationManager {
       _ieco5lxt.AppUserData => 'AppUserData',
       _ifywsnp6.ChecklistItem => 'ChecklistItem',
       _id7ivncr.Contact => 'Contact',
-      _izw8z7ou.Greeting => 'Greeting',
       _ifiazq2p.Project => 'Project',
       _ => null,
     };
@@ -160,8 +151,6 @@ class Protocol extends _isc.SerializationManager {
         return 'ChecklistItem';
       case _id7ivncr.Contact():
         return 'Contact';
-      case _izw8z7ou.Greeting():
-        return 'Greeting';
       case _ifiazq2p.Project():
         return 'Project';
     }
@@ -194,9 +183,6 @@ class Protocol extends _isc.SerializationManager {
     }
     if (dataClassName == 'Contact') {
       return deserialize<_id7ivncr.Contact>(data['data']);
-    }
-    if (dataClassName == 'Greeting') {
-      return deserialize<_izw8z7ou.Greeting>(data['data']);
     }
     if (dataClassName == 'Project') {
       return deserialize<_ifiazq2p.Project>(data['data']);

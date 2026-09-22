@@ -22,7 +22,6 @@ import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
 import '../endpoints/contact_endpoint.dart' as _iioqm6zp;
 import '../endpoints/project_endpoint.dart' as _iemg8ri2;
 import '../endpoints/user_endpoint.dart' as _iymy5306;
-import '../greetings/greeting_endpoint.dart' as _il624ik7;
 
 class Endpoints extends _is.EndpointDispatch {
   @override
@@ -62,12 +61,6 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'user',
-          null,
-        ),
-      'greeting': _il624ik7.GreetingEndpoint()
-        ..initialize(
-          server,
-          'greeting',
           null,
         ),
     };
@@ -559,31 +552,6 @@ class Endpoints extends _is.EndpointDispatch {
                     session,
                     phoneNumber: params['phoneNumber'],
                     deviceToken: params['deviceToken'],
-                  ),
-        ),
-      },
-    );
-    connectors['greeting'] = _is.EndpointConnector(
-      name: 'greeting',
-      endpoint: endpoints['greeting']!,
-      methodConnectors: {
-        'hello': _is.MethodConnector(
-          name: 'hello',
-          params: {
-            'name': _is.ParameterDescription(
-              name: 'name',
-              type: _is.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _is.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['greeting'] as _il624ik7.GreetingEndpoint).hello(
-                    session,
-                    params['name'],
                   ),
         ),
       },

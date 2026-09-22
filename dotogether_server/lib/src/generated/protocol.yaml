@@ -26,5 +26,3 @@ project:
 user:
   - getProfile:
   - updateProfile:
-greeting:
-  - hello:

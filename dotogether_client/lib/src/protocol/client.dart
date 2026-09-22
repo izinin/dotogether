@@ -13,8 +13,6 @@
 import 'dart:async' as _ida;
 import 'package:dotogether_client/src/protocol/app_user_data.dart' as _i6ey7ul7;
 import 'package:dotogether_client/src/protocol/contact.dart' as _ilzv33bz;
-import 'package:dotogether_client/src/protocol/greetings/greeting.dart'
-    as _ixhj6wzh;
 import 'package:dotogether_client/src/protocol/project.dart' as _ie83d1fr;
 import 'package:http/http.dart' as _i85jenna;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
@@ -207,6 +205,7 @@ class EndpointEmailIdp extends _iaic.EndpointEmailIdpBase {
   );
 }
 
+/// https://serverpod.dev/blog/flutter-google-apis-server-side
 /// By extending [GoogleIdpBaseEndpoint], the Google identity provider endpoints
 /// are made available on the server and enable Google Sign-In on the client.
 /// {@category Endpoint}
@@ -441,24 +440,6 @@ class EndpointUser extends _isc.EndpointRef {
   );
 }
 
-/// This is an example endpoint that returns a greeting message through
-/// its [hello] method.
-/// {@category Endpoint}
-class EndpointGreeting extends _isc.EndpointRef {
-  EndpointGreeting(_isc.EndpointCaller caller) : super(caller);
-
-  @override
-  String get name => 'greeting';
-
-  /// Returns a personalized greeting message: "Hello {name}".
-  _ida.Future<_ixhj6wzh.Greeting> hello(String name) =>
-      caller.callServerEndpoint<_ixhj6wzh.Greeting>(
-        'greeting',
-        'hello',
-        {'name': name},
-      );
-}
-
 class Modules {
   Modules(Client client) {
     serverpod_auth_core = _iacc.Caller(client);
@@ -503,7 +484,6 @@ class Client extends _isc.ServerpodClientShared {
     contact = EndpointContact(this);
     project = EndpointProject(this);
     user = EndpointUser(this);
-    greeting = EndpointGreeting(this);
     modules = Modules(this);
   }
 
@@ -519,8 +499,6 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointUser user;
 
-  late final EndpointGreeting greeting;
-
   late final Modules modules;
 
   @override
@@ -531,7 +509,6 @@ class Client extends _isc.ServerpodClientShared {
     'contact': contact,
     'project': project,
     'user': user,
-    'greeting': greeting,
   };
 
   @override

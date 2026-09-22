@@ -15,19 +15,6 @@ void run(List<String> args) async {
   // Initialize Serverpod. The generated Serverpod class is already connected
   // with your project's generated code.
   final pod = Serverpod(args);
-  GoogleIdpConfig? googleConfig;
-
-  if (pod.getPassword('googleClientSecret') != null) {
-    googleConfig = GoogleIdpConfigFromPasswords();
-  } else {
-    final jsonString = File(
-      'config/client_web.apps.googleusercontent.com.json',
-    ).readAsStringSync();
-    final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
-    googleConfig = GoogleIdpConfig(
-      clientSecret: GoogleClientSecret.fromJson(jsonMap),
-    );
-  }
 
   // Initialize authentication services for the server.
   // Token managers will be used to validate and issue authentication keys,
@@ -42,9 +29,16 @@ void run(List<String> args) async {
       ServerpodCloudEmailIdpConfig(
         appDisplayName: 'dotogether',
       ),
-      // Configure Google identity provider.
-      googleConfig,
+      GoogleIdpConfigFromPasswords(),
     ],
+  );
+
+  pod.webServer.addRoute(
+    // The FlutterWebAuth2CallbackRoute is a generic OAuth2 PKCE popup handler. 
+    // It works by capturing the OAuth code/token parameters from the popup window URL
+    // and sending them back to the main Flutter web window using browser postMessage communication.
+    FlutterWebAuth2CallbackRoute(),
+    '/auth/callback', // Single callback endpoint for ALL web auth providers
   );
 
   // Serve all files in the web/static relative directory under /web.
