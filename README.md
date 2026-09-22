@@ -8,8 +8,17 @@
   * Password: Found in `config/passwords.yaml` 
 or start postgres separatelly and see the connection string: `serverpod database start`
 
-* [Authentication setup](https://docs.serverpod.dev/next/concepts/authentication/setup)
+### Google OAuth2
+* [Authentication setup](https://docs.serverpod.dev/next/concepts/authentication/providers/google/setup)
 * [Webapp auth callback route](https://docs.serverpod.dev/next/concepts/authentication/setup#web-callback-page-authhtml)
+* [runnning web in local dev](https://docs.serverpod.dev/next/concepts/authentication/providers/google/setup#web):
+* run web targed locally with making the same origin with serverpod
+```shell
+flutter build web --base-href / --output ../dotogether_server/web/app  # from your Flutter project
+serverpod start --no-flutter                                           # from your server project
+```
+
+
 * Example [Accessing Google APIs server-side from a Flutter app](https://serverpod.dev/blog/flutter-google-apis-server-side)
 * Obsolete [working with endpoints](https://docs.serverpod.dev/3.1.0/concepts/working-with-endpoints)
 

@@ -8,7 +8,6 @@ import '../client.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 class AppState extends ChangeNotifier {
-  final bool _isDemoMode = true; // Running with hardcoded demo functionality
   bool _isInitialized = false;
 
   // Authentication State
@@ -37,7 +36,6 @@ class AppState extends ChangeNotifier {
   List<Project> _receivedProjects = [];
 
   // Getters
-  bool get isDemoMode => _isDemoMode;
   bool get isInitialized => _isInitialized;
   String? get currentUserUid => _currentUserUid;
   String? get currentPhoneNumber => _currentPhoneNumber;
@@ -194,67 +192,6 @@ class AppState extends ChangeNotifier {
       notifyListeners();
       return false;
     }
-  }
-
-  /// Sign in with Google
-  Future<bool> signInWithGoogle() async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      // First attempt native/web Serverpod Google auth if supported
-      try {
-        final authController = GoogleAuthController(client: client);
-        await authController.signIn();
-        if (client.auth.isAuthenticated) {
-          _currentUserUid = client.auth.authInfo?.authUserId.toString();
-          // Fetch backend profile data if available
-          try {
-            final profile = await client.user.getProfile();
-            if (profile?.phoneNumber != null) {
-              _currentPhoneNumber = profile!.phoneNumber;
-            }
-          } catch (_) {}
-          _isLoading = false;
-          notifyListeners();
-          return true;
-        }
-      } catch (authError) {
-        debugPrint(
-          'Serverpod GoogleAuthController error / fallback: $authError',
-        );
-      }
-
-      // If Serverpod Google IdP flow didn't succeed (e.g. running in test simulator without Google Play services),
-      // support demo/fallback sign in so developer experience is seamless
-      await Future.delayed(const Duration(milliseconds: 500));
-      _currentUserUid = 'google_user_uid';
-      _currentPhoneNumber =
-          '+358442096093'; // Preserve user context for existing demo projects
-      _loadMockInitialData();
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
-  }
-
-  /// Sign in with Apple
-  Future<bool> signInWithApple() async {
-    _isLoading = true;
-    notifyListeners();
-
-    await Future.delayed(const Duration(milliseconds: 500));
-    _currentUserUid = 'apple_user_uid';
-    _currentPhoneNumber =
-        '+358442096093'; // Preserve user context for existing demo projects
-    _loadMockInitialData();
-    _isLoading = false;
-    notifyListeners();
-    return true;
   }
 
   /// Reset the verification stepper state

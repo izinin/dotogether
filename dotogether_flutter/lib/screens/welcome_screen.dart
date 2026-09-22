@@ -1,5 +1,7 @@
+import 'package:dotogether_flutter/client.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 import '../services/app_state.dart';
 import 'home_screen.dart';
 
@@ -93,123 +95,27 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                 )
               else ...[
-                // Google Login Button
-                _buildSocialLoginButton(
-                  context: context,
-                  label: 'Login with Google',
-                  icon: _buildGoogleIcon(),
-                  backgroundColor: Colors.white,
-                  textColor: Colors.black87,
-                  borderColor: Colors.grey.shade300,
-                  onPressed: () async {
-                    bool success = await appState.signInWithGoogle();
-                    if (success && context.mounted) {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => const HomeScreen(),
-                        ),
-                      );
-                    } else if (!success && context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Google Sign In failed or cancelled.'),
-                        ),
-                      );
-                    }
+                SignInWidget(
+                  client: client,
+                  disableEmailSignInWidget: true,
+                  onAuthenticated: () {
+                    // Do something when the user is authenticated.
+                    //
+                    // NOTE: You should not navigate to the home screen here, otherwise
+                    // the user will have to sign in again every time they open the app.
+                    debugPrint('User authenticated successfully.');
                   },
-                ),
-                const SizedBox(height: 16),
-
-                // Apple Login Button
-                _buildSocialLoginButton(
-                  context: context,
-                  label: 'Login with Apple',
-                  icon: const Icon(
-                    Icons.apple,
-                    size: 26,
-                    color: Colors.white,
-                  ),
-                  backgroundColor: Colors.black,
-                  textColor: Colors.white,
-                  borderColor: Colors.black,
-                  onPressed: () async {
-                    bool success = await appState.signInWithApple();
-                    if (success && context.mounted) {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => const HomeScreen(),
-                        ),
-                      );
-                    }
+                  onError: (error) {
+                    // Handle errors
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: $error')),
+                    );
                   },
-                ),
+                )
               ],
               const SizedBox(height: 24),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSocialLoginButton({
-    required BuildContext context,
-    required String label,
-    required Widget icon,
-    required Color backgroundColor,
-    required Color textColor,
-    required Color borderColor,
-    required VoidCallback onPressed,
-  }) {
-    return SizedBox(
-      height: 52,
-      child: OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          backgroundColor: backgroundColor,
-          foregroundColor: textColor,
-          side: BorderSide(color: borderColor, width: 1.5),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          elevation: 0,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            icon,
-            const SizedBox(width: 12),
-            Text(
-              label,
-              style: TextStyle(
-                color: textColor,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.2,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGoogleIcon() {
-    return Container(
-      width: 24,
-      height: 24,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white,
-      ),
-      alignment: Alignment.center,
-      child: const Text(
-        'G',
-        style: TextStyle(
-          color: Color(0xFF4285F4),
-          fontWeight: FontWeight.w900,
-          fontSize: 20,
-          fontFamily: 'sans-serif',
         ),
       ),
     );
