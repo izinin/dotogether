@@ -8,6 +8,7 @@ import '../client.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 class AppState extends ChangeNotifier {
+  bool _isDemoMode = false; // Running with hardcoded demo functionality
   bool _isInitialized = false;
 
   String? _currentUserUid;
@@ -28,18 +29,18 @@ class AppState extends ChangeNotifier {
   List<Project> _receivedProjects = [];
 
   // Getters
+  bool get isDemoMode => _isDemoMode;
   bool get isInitialized => _isInitialized;
   String? get currentUserUid => _currentUserUid;
   String? get currentPhoneNumber => _currentPhoneNumber;
   bool get isLoading => _isLoading;
-  bool get isAuthenticated => client.auth.isAuthenticated;
+  bool get isAuthenticated => _isDemoMode || client.auth.isAuthenticated;
 
   List<Contact> get contacts => _contacts;
-  bool get isLoadingContacts => _isLoadingContacts;
-  bool get hasContactPermission => _hasContactPermission;
-
   List<Project> get createdProjects => _createdProjects;
   List<Project> get receivedProjects => _receivedProjects;
+  bool get isLoadingContacts => _isLoadingContacts;
+  bool get hasContactPermission => _hasContactPermission;
 
   AppState() {
     _initialize();
@@ -55,12 +56,22 @@ class AppState extends ChangeNotifier {
 
   void _onAuthChanged() {
     if (client.auth.isAuthenticated) {
+      _isDemoMode = false;
       ensureUserInDatabase();
-    } else {
+    } else if (!_isDemoMode) {
       _currentUserUid = null;
       _currentPhoneNumber = null;
       notifyListeners();
     }
+  }
+
+  /// Start demo mode with hardcoded demo functionality and initial mock data
+  void startDemoMode() {
+    _isDemoMode = true;
+    _currentUserUid = 'demo_user_uid';
+    _currentPhoneNumber = '+358442096093';
+    _loadMockInitialData();
+    notifyListeners();
   }
 
   /// Ensure authenticated user is in the database and loaded into state
@@ -77,7 +88,9 @@ class AppState extends ChangeNotifier {
         profile = await client.user.updateProfile();
         debugPrint('User profile created in database with id: ${profile.id}');
       } else {
-        debugPrint('Authenticated user found in database: ${profile.authUserId}');
+        debugPrint(
+          'Authenticated user found in database: ${profile.authUserId}',
+        );
       }
 
       _currentUserUid = profile.authUserId.toString();
@@ -195,6 +208,7 @@ class AppState extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error signing out of Serverpod: $e');
     }
+    _isDemoMode = false;
     _currentUserUid = null;
     _currentPhoneNumber = null;
     _createdProjects = [];

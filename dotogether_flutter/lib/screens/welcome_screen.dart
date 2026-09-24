@@ -43,12 +43,21 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
   }
 
+  void _handleTutorial() {
+    debugPrint('Starting tutorial in demo mode.');
+    final appState = Provider.of<AppState>(context, listen: false);
+    appState.startDemoMode();
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
 
     // If authenticated and finished loading, navigate to HomeScreen
-    if (client.auth.isAuthenticated && !appState.isLoading) {
+    if (appState.isAuthenticated && !appState.isLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         Navigator.of(context).pushReplacement(
@@ -130,6 +139,31 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   ),
                 )
               else ...[
+                ElevatedButton.icon(
+                  onPressed: _handleTutorial,
+                  icon: const Icon(
+                    Icons.play_circle_outline,
+                    color: Colors.white,
+                  ),
+                  label: const Text(
+                    'Tutorial',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2196F3),
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    elevation: 1,
+                  ),
+                ),
+                const SizedBox(height: 12),
                 SignInWidget(
                   client: client,
                   disableEmailSignInWidget: true,
@@ -139,7 +173,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       SnackBar(content: Text('Error: $error')),
                     );
                   },
-                )
+                ),
               ],
               const SizedBox(height: 24),
             ],

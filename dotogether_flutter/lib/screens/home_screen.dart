@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
-import '../client.dart';
 import '../services/app_state.dart';
 import 'projects_list_screen.dart';
 import 'friends_screen.dart';
@@ -15,7 +13,7 @@ class HomeScreen extends StatelessWidget {
     final appState = Provider.of<AppState>(context);
 
     // If signed out, pop back to welcome
-    if (!client.auth.isAuthenticated) {
+    if (!appState.isAuthenticated) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const WelcomeScreen()),
@@ -115,6 +113,31 @@ class HomeScreen extends StatelessWidget {
                 );
               },
             ),
+
+            const Spacer(),
+            // Developer Notice (Premium styling)
+            if (appState.isDemoMode)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue.shade100),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Color(0xFF2196F3)),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Running in Demo Mode. Real-time lists and registration are simulated locally with screenshots mock data.',
+                        style: TextStyle(color: Colors.black87, fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
