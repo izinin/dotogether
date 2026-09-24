@@ -10,6 +10,7 @@ import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 class AppState extends ChangeNotifier {
   bool _isInitialized = false;
 
+  String? _currentUserUid;
   String? _currentPhoneNumber;
   bool _isLoading = false;
 
@@ -28,8 +29,10 @@ class AppState extends ChangeNotifier {
 
   // Getters
   bool get isInitialized => _isInitialized;
+  String? get currentUserUid => _currentUserUid;
   String? get currentPhoneNumber => _currentPhoneNumber;
   bool get isLoading => _isLoading;
+  bool get isAuthenticated => client.auth.isAuthenticated;
 
   List<Contact> get contacts => _contacts;
   bool get isLoadingContacts => _isLoadingContacts;
@@ -40,10 +43,59 @@ class AppState extends ChangeNotifier {
 
   AppState() {
     _initialize();
+    client.auth.authInfoListenable.addListener(_onAuthChanged);
   }
 
-  /// Initialize Demo Mode
+  @override
+  void dispose() {
+    client.auth.authInfoListenable.removeListener(_onAuthChanged);
+    _mockProjectsController.close();
+    super.dispose();
+  }
+
+  void _onAuthChanged() {
+    if (client.auth.isAuthenticated) {
+      ensureUserInDatabase();
+    } else {
+      _currentUserUid = null;
+      _currentPhoneNumber = null;
+      notifyListeners();
+    }
+  }
+
+  /// Ensure authenticated user is in the database and loaded into state
+  Future<void> ensureUserInDatabase() async {
+    if (!client.auth.isAuthenticated) return;
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      var profile = await client.user.getProfile();
+      if (profile == null) {
+        debugPrint('User not found in database, inserting new profile...');
+        profile = await client.user.updateProfile();
+        debugPrint('User profile created in database with id: ${profile.id}');
+      } else {
+        debugPrint('Authenticated user found in database: ${profile.authUserId}');
+      }
+
+      _currentUserUid = profile.authUserId.toString();
+      _currentPhoneNumber = profile.phoneNumber;
+      _updateMockStream();
+    } catch (e) {
+      debugPrint('Error syncing user with database: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Initialize state
   Future<void> _initialize() async {
+    if (client.auth.isAuthenticated) {
+      await ensureUserInDatabase();
+    }
     _loadMockInitialData();
     _isInitialized = true;
     notifyListeners();
@@ -51,8 +103,6 @@ class AppState extends ChangeNotifier {
 
   /// Load screenshot-matching data for the Simulation/Demo mode
   void _loadMockInitialData() {
-    _currentPhoneNumber =
-        "+358442096093"; // Matches the Finnish phone number in the stepper screenshot
     _mockProjects.clear();
 
     _mockProjects.addAll([
@@ -145,6 +195,7 @@ class AppState extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error signing out of Serverpod: $e');
     }
+    _currentUserUid = null;
     _currentPhoneNumber = null;
     _createdProjects = [];
     _receivedProjects = [];
@@ -227,7 +278,7 @@ class AppState extends ChangeNotifier {
       id: projectId,
       title: title.trim(),
       description: description.trim(),
-      creatorUid: 'todo_me_uid',
+      creatorUid: _currentUserUid ?? 'me_uid',
       creatorPhone: _currentPhoneNumber ?? '+358442096093',
       assigneePhone: normalizedPhone,
       assigneeName: assigneeName,
@@ -313,11 +364,5 @@ class AppState extends ChangeNotifier {
     } catch (e) {
       debugPrint("SMS Launch Exception: $e");
     }
-  }
-
-  @override
-  void dispose() {
-    _mockProjectsController.close();
-    super.dispose();
   }
 }

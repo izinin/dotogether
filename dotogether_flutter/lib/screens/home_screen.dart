@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
+import '../client.dart';
 import '../services/app_state.dart';
 import 'projects_list_screen.dart';
 import 'friends_screen.dart';
@@ -13,7 +15,7 @@ class HomeScreen extends StatelessWidget {
     final appState = Provider.of<AppState>(context);
 
     // If signed out, pop back to welcome
-    if (appState.currentPhoneNumber == null) {
+    if (!client.auth.isAuthenticated) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const WelcomeScreen()),

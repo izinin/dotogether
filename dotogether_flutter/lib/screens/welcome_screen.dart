@@ -5,17 +5,52 @@ import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 import '../services/app_state.dart';
 import 'home_screen.dart';
 
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
+
+  @override
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends State<WelcomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkInitialAuth();
+    });
+  }
+
+  Future<void> _checkInitialAuth() async {
+    if (!mounted) return;
+    if (client.auth.isAuthenticated) {
+      final appState = Provider.of<AppState>(context, listen: false);
+      await appState.ensureUserInDatabase();
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
+    }
+  }
+
+  Future<void> _handleAuthenticated() async {
+    debugPrint('User authenticated successfully.');
+    final appState = Provider.of<AppState>(context, listen: false);
+    await appState.ensureUserInDatabase();
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
 
-    // Check if authenticated
-    if (appState.currentPhoneNumber != null && !appState.isLoading) {
-      // Delay navigation slightly to prevent build-phase route changes
+    // If authenticated and finished loading, navigate to HomeScreen
+    if (client.auth.isAuthenticated && !appState.isLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const HomeScreen()),
         );
@@ -98,15 +133,8 @@ class WelcomeScreen extends StatelessWidget {
                 SignInWidget(
                   client: client,
                   disableEmailSignInWidget: true,
-                  onAuthenticated: () {
-                    // Do something when the user is authenticated.
-                    //
-                    // NOTE: You should not navigate to the home screen here, otherwise
-                    // the user will have to sign in again every time they open the app.
-                    debugPrint('User authenticated successfully.');
-                  },
+                  onAuthenticated: _handleAuthenticated,
                   onError: (error) {
-                    // Handle errors
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Error: $error')),
                     );

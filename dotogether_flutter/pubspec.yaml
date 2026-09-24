@@ -32,8 +32,8 @@ dependencies:
   google_fonts: ^8.1.0
   dotogether_client:
     path: ../dotogether_client
-  serverpod_flutter: 4.0.1
-  serverpod_auth_idp_flutter: 4.0.1
+  serverpod_flutter: 4.0.2
+  serverpod_auth_idp_flutter: 4.0.2
   flutter_contacts: ^2.5.0
   provider: ^6.1.5+1
   url_launcher: ^6.3.2
