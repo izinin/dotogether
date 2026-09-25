@@ -8,6 +8,13 @@
   * Password: Found in `config/passwords.yaml` 
 or start postgres separatelly and see the connection string: `serverpod database start`
 
+### connect physical device on macos in the same WiFi
+* find local IP in the WiFi: `ipconfig getifaddr en0`
+* update Serverpod's `dotogether_server/config/development.yaml` `publicHost: localhost` to `publicHost: 10.66.11.24`
+* start Postgres separately: `serverpod database start`
+* start serverpod: `serverpod start --no-flutter`
+* start the app: `flutter run -d 00008030-001059C01AEA402E --dart-define SERVER_URL=http://10.66.11.24:8080/`
+
 ### Google OAuth2
 * [Authentication setup](https://docs.serverpod.dev/next/concepts/authentication/providers/google/setup)
 * [Webapp auth callback route](https://docs.serverpod.dev/next/concepts/authentication/setup#web-callback-page-authhtml)

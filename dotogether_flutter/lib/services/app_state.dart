@@ -69,7 +69,7 @@ class AppState extends ChangeNotifier {
   void startDemoMode() {
     _isDemoMode = true;
     _currentUserUid = 'demo_user_uid';
-    _currentPhoneNumber = '+358442096093';
+    _currentPhoneNumber = '+(simulated)12309344';
     _loadMockInitialData();
     notifyListeners();
   }
@@ -124,8 +124,8 @@ class AppState extends ChangeNotifier {
         title: 'tasks for you',
         description: 'Assigned to you by Hank. Please review and complete.',
         creatorUid: 'hank_uid',
-        creatorPhone: '+358401234567',
-        assigneePhone: '+358442096093',
+        creatorPhone: '+(simulated)12309344',
+        assigneePhone: '+(simulated)12309344',
         assigneeName: 'Hank M. Zakroff',
         status: 'pending',
         createdAt: DateTime.now().subtract(const Duration(hours: 4)),
@@ -140,8 +140,8 @@ class AppState extends ChangeNotifier {
         title: 'shopping list',
         description: 'Groceries for the weekend dinner.',
         creatorUid: 'john_uid',
-        creatorPhone: '+15556106679',
-        assigneePhone: '+358442096093',
+        creatorPhone: '+(simulated)15556106',
+        assigneePhone: '+(simulated)12309344',
         assigneeName: 'John Appleseed',
         status: 'pending',
         createdAt: DateTime.now().subtract(const Duration(days: 1)),
@@ -157,8 +157,8 @@ class AppState extends ChangeNotifier {
         title: 'project "my company logo"',
         description: 'Design mockups and details.',
         creatorUid: 'me_uid',
-        creatorPhone: '+358442096093',
-        assigneePhone: '+15555228243',
+        creatorPhone: '+(simulated)12309344',
+        assigneePhone: '+(simulated)15555228',
         assigneeName: 'Anna Haro',
         status: 'completed',
         createdAt: DateTime.now().subtract(const Duration(days: 3)),
@@ -173,8 +173,8 @@ class AppState extends ChangeNotifier {
         title: 'your task for today',
         description: 'Urgent maintenance checks.',
         creatorUid: 'me_uid',
-        creatorPhone: '+358442096093',
-        assigneePhone: '+15556106680',
+        creatorPhone: '+(simulated)12309344',
+        assigneePhone: '+(simulated)15556106',
         assigneeName: 'David Taylor',
         status: 'in_progress',
         createdAt: DateTime.now().subtract(const Duration(hours: 2)),
@@ -230,8 +230,14 @@ class AppState extends ChangeNotifier {
       );
       _hasContactPermission = permission == PermissionStatus.granted;
 
-      if (permission == PermissionStatus.granted) {
-        List<Contact> deviceContacts = await FlutterContacts.getAll();
+      if (!_isDemoMode && permission == PermissionStatus.granted) {
+        List<Contact> deviceContacts = await FlutterContacts.getAll(
+          properties: {
+            ContactProperty.name,
+            ContactProperty.phone,
+            ContactProperty.email,
+          },
+        );
         _contacts = deviceContacts;
       } else {
         _loadSimulatedContacts();
@@ -247,21 +253,31 @@ class AppState extends ChangeNotifier {
 
   void _loadSimulatedContacts() {
     _contacts = [
+      // Contacts matching existing tasks in _loadMockInitialData:
       Contact(
         name: Name(first: 'Hank', last: 'M. Zakroff'),
-        phones: [Phone(number: '+358401234567')],
+        phones: [Phone(number: '+(simulated)12309344')],
       ),
       Contact(
-        name: Name(first: 'John', last: 'Appleseed'),
-        phones: [Phone(number: '+1 (555) 610-6679')],
+        name: Name(first: 'Michael', last: 'Appleseed'),
+        phones: [Phone(number: '+(simulated)15556106')],
       ),
       Contact(
         name: Name(first: 'Anna', last: 'Haro'),
-        phones: [Phone(number: '+1 (555) 522-8243')],
+        phones: [Phone(number: '+(simulated)15555228')],
       ),
       Contact(
         name: Name(first: 'David', last: 'Taylor'),
-        phones: [Phone(number: '+1 (555) 610-6680')],
+        phones: [Phone(number: '+(simulated)15556106')],
+      ),
+      // Contacts not used in any initial task, available to create new tasks:
+      Contact(
+        name: Name(first: 'Sarah', last: 'Connor'),
+        phones: [Phone(number: '+(simulated)57890123')],
+      ),
+      Contact(
+        name: Name(first: 'John', last: 'Dough'),
+        phones: [Phone(number: '+(simulated)85098760')],
       ),
     ];
   }
@@ -293,7 +309,7 @@ class AppState extends ChangeNotifier {
       title: title.trim(),
       description: description.trim(),
       creatorUid: _currentUserUid ?? 'me_uid',
-      creatorPhone: _currentPhoneNumber ?? '+358442096093',
+      creatorPhone: _currentPhoneNumber ?? '+(simulated)12309344',
       assigneePhone: normalizedPhone,
       assigneeName: assigneeName,
       status: 'pending',

@@ -29,6 +29,16 @@
             "type": "dart"
         },
         {
+            "name": "dotogether_iphone_device",
+            "cwd": "dotogether_flutter",
+            "request": "launch",
+            "type": "dart",
+            "args": [
+                "--dart-define",
+                "SERVER_URL=http://10.66.11.24:8080/"
+            ]
+        },
+        {
             "name": "dotogether_flutter (profile mode)",
             "cwd": "dotogether_flutter",
             "request": "launch",

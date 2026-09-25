@@ -98,7 +98,7 @@ class ProjectsListScreen extends StatelessWidget {
     // Creator mode: Show assignee's name (Hank M. Zakroff, Anna Haro, etc.)
     // Assignee mode: Show creator's phone/name
     String nameLabel = isReceivedMode
-        ? (project.creatorPhone == '+358442096093'
+        ? (project.creatorPhone == '+(simulated)12309344'
               ? 'Hank M. Zakroff'
               : project.creatorPhone)
         : project.assigneeName;
