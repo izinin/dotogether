@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:dotogether_client/dotogether_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -6,14 +7,29 @@ import '../models/project.dart';
 import '../utils/phone_number_utility.dart';
 import '../client.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AppState extends ChangeNotifier {
   bool _isDemoMode = false; // Running with hardcoded demo functionality
   bool _isInitialized = false;
 
+  User? _currentUser;
   String? _currentUserUid;
   String? _currentPhoneNumber;
   bool _isLoading = false;
+
+  // Stepper Registration State
+  int _registrationStep = 1; // 1: Input phone, 2: Loading/SMS code sent in progress, 3: Verify code
+  String _registrationPhone = '';
+  String _verificationId = '';
+  String _smsCodeError = '';
+  String _phoneError = '';
+
+  int get registrationStep => _registrationStep;
+  String get registrationPhone => _registrationPhone;
+  String get smsCodeError => _smsCodeError;
+  String get phoneError => _phoneError;
 
   // Contacts State
   List<Contact> _contacts = [];
@@ -106,6 +122,7 @@ class AppState extends ChangeNotifier {
 
   /// Initialize state
   Future<void> _initialize() async {
+    await _initFirebaseAuth();
     if (client.auth.isAuthenticated) {
       await ensureUserInDatabase();
     }
@@ -213,6 +230,163 @@ class AppState extends ChangeNotifier {
     _currentPhoneNumber = null;
     _createdProjects = [];
     _receivedProjects = [];
+    notifyListeners();
+  }
+
+  // ================= AUTHENTICATION FLOW =================
+
+  /// Step 1: Send SMS Verification Code
+  Future<void> sendSmsCode(String rawPhoneNumber) async {
+    _isLoading = true;
+    _phoneError = '';
+    _registrationStep = 2; // Move to step 2 (Requesting SMS...)
+    notifyListeners();
+
+    _registrationPhone = PhoneNumberUtility.normalize(rawPhoneNumber);
+
+    if (_isDemoMode) {
+      // Simulate network request to Firebase Auth
+      await Future.delayed(const Duration(seconds: 2));
+      _isLoading = false;
+      _registrationStep = 3; // Move to step 3 (Enter verification code)
+      notifyListeners();
+      debugPrint(
+        "DoTogether: (Demo Mode) SMS verification code requested for $_registrationPhone",
+      );
+      return;
+    }
+
+    try {
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: _registrationPhone,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          // Auto-resolution (on Android devices)
+          await FirebaseAuth.instance.signInWithCredential(credential);
+          _onAuthSuccess();
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          _isLoading = false;
+          _registrationStep = 1;
+          _phoneError = e.message ?? "Phone verification failed.";
+          notifyListeners();
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          _isLoading = false;
+          _verificationId = verificationId;
+          _registrationStep = 3; // Prompts code entry screen
+          notifyListeners();
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          _verificationId = verificationId;
+        },
+        timeout: const Duration(seconds: 60),
+      );
+    } catch (e) {
+      _isLoading = false;
+      _registrationStep = 1;
+      _phoneError = e.toString();
+      notifyListeners();
+    }
+  }
+
+  /// Step 3: Verify the SMS Code and Sign In
+  Future<bool> verifySmsCode(String smsCode) async {
+    _isLoading = true;
+    _smsCodeError = '';
+    notifyListeners();
+
+    if (_isDemoMode) {
+      await Future.delayed(const Duration(seconds: 1500 ~/ 1000));
+      // In demo mode, accept code '123456' or any 6-digit code
+      if (smsCode.length == 6) {
+        _currentPhoneNumber = _registrationPhone;
+        _isDemoMode = true; // Keep demo active but logged in
+        _loadMockInitialData(); // Reload projects with the registered phone
+        _isLoading = false;
+        _registrationStep = 1;
+        notifyListeners();
+        return true;
+      } else {
+        _isLoading = false;
+        _smsCodeError = "Invalid verification code. Enter a 6-digit number.";
+        notifyListeners();
+        return false;
+      }
+    }
+
+    try {
+      PhoneAuthCredential credential = PhoneAuthProvider.credential(
+        verificationId: _verificationId,
+        smsCode: smsCode,
+      );
+      UserCredential userCred = await FirebaseAuth.instance
+          .signInWithCredential(credential);
+      if (userCred.user != null) {
+        await _onAuthSuccess();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      _isLoading = false;
+      _smsCodeError = "SMS Code Verification Error: ${e.toString()}";
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<void> _onAuthSuccess() async {
+    _currentUser = FirebaseAuth.instance.currentUser;
+    _currentPhoneNumber = _currentUser?.phoneNumber;
+
+    client.phoneAuth.authenticateWithFirebasePhone(PhoneAuthPayload(
+      phoneNumber: _currentUser!.phoneNumber!,
+      displayName: _currentUser!.displayName ?? '',
+      email: _currentUser!.email,
+      photoUrl: _currentUser!.photoURL,
+    ));
+
+    _isLoading = false;
+    _registrationStep = 1;
+    notifyListeners();
+  }
+
+  /// Reset the verification stepper state
+  void resetStepper() {
+    _registrationStep = 1;
+    _phoneError = '';
+    _smsCodeError = '';
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  /// Initialize Firebase or fallback to Demo Mode
+  Future<void> _initFirebaseAuth() async {
+    try {
+      // Try to initialize Firebase
+      await Firebase.initializeApp();
+      _isDemoMode = false;
+      debugPrint(
+        "DoTogether: Firebase initialized successfully. Running in LIVE mode.",
+      );
+
+      // Listen to Auth State
+      FirebaseAuth.instance.authStateChanges().listen((User? user) {
+        _currentUser = user;
+        _currentPhoneNumber = user?.phoneNumber;
+        notifyListeners();
+      });
+    } catch (e) {
+      _isDemoMode = true;
+      debugPrint(
+        e.toString(),
+      );
+      debugPrint(
+        "DoTogether: Firebase configuration is not completed or missing. Running in DEMO/SIMULATION mode.",
+      );
+      _loadMockInitialData();
+    }
+
+    _isInitialized = true;
     notifyListeners();
   }
 

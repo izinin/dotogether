@@ -25,10 +25,19 @@ flutter build web --base-href / --output ../dotogether_server/web/app  # from yo
 serverpod start --no-flutter                                           # from your server project
 ```
 
+### using Firebase Auth
+* creating application with CLI: `flutterfire configure`
 
 * Example [Accessing Google APIs server-side from a Flutter app](https://serverpod.dev/blog/flutter-google-apis-server-side)
-* Obsolete [working with endpoints](https://docs.serverpod.dev/3.1.0/concepts/working-with-endpoints)
 
+### working with endpoints
+```shell
+# 1. Generate repair migration
+serverpod create-migration --force
+
+# 2. Run server with repair flag
+dart bin/main.dart --apply-repair-migration
+```
 
 ### Understanding API Server vs Web Server
 * API Server (apiServer - Default: Port `8080`): Handles Flutter client communication using WebSockets (for streaming/subscriptions) and HTTP RPC requests (for standard endpoint method calls).

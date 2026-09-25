@@ -1,0 +1,6 @@
+class: PhoneAuthPayload
+fields:
+  phoneNumber: String
+  displayName: String
+  email: String?
+  photoUrl: String?

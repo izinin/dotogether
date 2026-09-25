@@ -16,10 +16,13 @@ import 'dart:io' as _idi;
 import 'package:dotogether_server/src/generated/app_user_data.dart'
     as _ir08hrjl;
 import 'package:dotogether_server/src/generated/contact.dart' as _imw5cso4;
+import 'package:dotogether_server/src/generated/phone_auth_payload.dart'
+    as _imlgohb7;
 import 'package:dotogether_server/src/generated/project.dart' as _i4y9nq59;
 import 'package:serverpod/serverpod.dart' as _is;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _iacs;
+import 'package:serverpod_auth_server/serverpod_auth_server.dart' as _i1n3uhu0;
 import 'package:serverpod_test/serverpod_test.dart' as _ist;
 import 'package:dotogether_server/src/generated/protocol.dart';
 import 'package:dotogether_server/src/generated/endpoints.dart';
@@ -157,6 +160,8 @@ class TestEndpoints {
 
   late final _ContactEndpoint contact;
 
+  late final _PhoneAuthEndpoint phoneAuth;
+
   late final _ProjectEndpoint project;
 
   late final _UserEndpoint user;
@@ -182,6 +187,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     contact = _ContactEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    phoneAuth = _PhoneAuthEndpoint(
       endpoints,
       serializationManager,
     );
@@ -689,6 +698,48 @@ class _ContactEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<List<_imw5cso4.Contact>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _PhoneAuthEndpoint {
+  _PhoneAuthEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<_i1n3uhu0.AuthenticationResponse> authenticateWithFirebasePhone(
+    _ist.TestSessionBuilder sessionBuilder,
+    _imlgohb7.PhoneAuthPayload firebaseUser,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'phoneAuth',
+            method: 'authenticateWithFirebasePhone',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'phoneAuth',
+          methodName: 'authenticateWithFirebasePhone',
+          parameters: _ist.testObjectToJson({'firebaseUser': firebaseUser}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_i1n3uhu0.AuthenticationResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

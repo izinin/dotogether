@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 import '../services/app_state.dart';
+import 'auth_with_sms_screen.dart';
 import 'home_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -66,6 +67,26 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       });
     }
 
+    final ButtonStyle authButtonStyle = OutlinedButton.styleFrom(
+      foregroundColor: Colors.black87, // Dark text/icon color
+      backgroundColor: Colors.white, // White background
+      side: const BorderSide(
+        color: Color(0xFFE0E0E0),
+        width: 1,
+      ), // Light border outline
+      shape: const StadiumBorder(), // Pill rounded shape
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      elevation: 0,
+    );
+
+    final ButtonStyle normalButtonStyle = ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFF2196F3),
+      foregroundColor: Colors.white,
+      minimumSize: const Size(double.infinity, 50),
+      shape: const StadiumBorder(),
+      elevation: 1,
+    );
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -87,7 +108,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            // crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Spacer(),
               // App Logo / Welcome Header
@@ -139,30 +160,48 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   ),
                 )
               else ...[
-                ElevatedButton.icon(
-                  onPressed: _handleTutorial,
-                  icon: const Icon(
-                    Icons.play_circle_outline,
-                    color: Colors.white,
-                  ),
-                  label: const Text(
-                    'Tutorial',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                SizedBox(
+                  width: 250, // Match width of Google Button
+                  height: 44,
+                  child: ElevatedButton.icon(
+                    onPressed: _handleTutorial,
+                    icon: const Icon(
+                      Icons.play_circle_outline,
                       color: Colors.white,
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2196F3),
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                    label: const Text(
+                      'Tutorial',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
                     ),
-                    elevation: 1,
+                    style: normalButtonStyle,
                   ),
                 ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: 250, // Match width of Google Button
+                  height: 44,
+                  child: OutlinedButton.icon(
+                    onPressed: _handleSignInWithSMS,
+                    icon: const Icon(
+                      Icons.sms_outlined,
+                      color: Colors.blueGrey,
+                    ),
+                    label: const Text(
+                      'Sign in with SMS',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.blueGrey,
+                      ),
+                    ),
+                    style: authButtonStyle,
+                  ),
+                ),
+                /*
                 const SizedBox(height: 12),
                 SignInWidget(
                   client: client,
@@ -174,12 +213,20 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     );
                   },
                 ),
+                */
               ],
-              const SizedBox(height: 24),
+              const SizedBox(height: 48),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  void _handleSignInWithSMS() {
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const AuthWithSmsScreen()),
     );
   }
 }
