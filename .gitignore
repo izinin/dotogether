@@ -2,3 +2,5 @@
 client_web.apps.googleusercontent.com.json
 dotogether_flutter/macos/Runner.xcworkspace/xcshareddata
 dotogether_flutter/macos/Runner.xcodeproj/project.xcworkspace/xcshareddata
+dotogether_client/lib/src/protocol
+dotogether_server/lib/src/generated
