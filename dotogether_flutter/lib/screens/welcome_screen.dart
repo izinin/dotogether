@@ -1,4 +1,5 @@
 import 'package:dotogether_flutter/client.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
@@ -136,6 +137,22 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   color: Colors.grey.shade600,
                 ),
               ),
+
+              if (kIsWeb) ...[
+                const SizedBox(height: 12),
+
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.info_outline, color: Color(0xFF2196F3)),
+                    SizedBox(width: 12),
+                    Text(
+                      'available only on Android and iOS devices',
+                      style: TextStyle(color: Colors.black87, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ],
               const Spacer(),
 
               if (appState.isLoading)
@@ -160,7 +177,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       color: Colors.white,
                     ),
                     label: const Text(
-                      'Tutorial',
+                      'Demo',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -171,26 +188,27 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                SizedBox(
-                  width: 250, // Match width of Google Button
-                  height: 44,
-                  child: OutlinedButton.icon(
-                    onPressed: _handleSignInWithSMS,
-                    icon: const Icon(
-                      Icons.sms_outlined,
-                      color: Colors.blueGrey,
-                    ),
-                    label: const Text(
-                      'Sign in with SMS',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                if (!kIsWeb)
+                  SizedBox(
+                    width: 250, // Match width of Google Button
+                    height: 44,
+                    child: OutlinedButton.icon(
+                      onPressed: _handleSignInWithSMS,
+                      icon: const Icon(
+                        Icons.sms_outlined,
                         color: Colors.blueGrey,
                       ),
+                      label: const Text(
+                        'Sign in with SMS',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.blueGrey,
+                        ),
+                      ),
+                      style: authButtonStyle,
                     ),
-                    style: authButtonStyle,
                   ),
-                ),
               ],
               const SizedBox(height: 48),
             ],

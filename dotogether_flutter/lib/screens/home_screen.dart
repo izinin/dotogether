@@ -14,15 +14,6 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
 
-    // If signed out, pop back to welcome
-    if (!client.auth.isAuthenticated) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const WelcomeScreen()),
-        );
-      });
-    }
-
     // Dynamic list calculations for sub-labels
     int receivedCount = appState.receivedProjects
         .where((p) => p.status != 'completed')
@@ -209,6 +200,9 @@ class HomeScreen extends StatelessWidget {
             onPressed: () {
               Navigator.of(context).pop();
               appState.signOut();
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+              );
             },
             child: const Text('SIGN OUT', style: TextStyle(color: Colors.red)),
           ),

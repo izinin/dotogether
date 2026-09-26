@@ -428,28 +428,28 @@ class AppState extends ChangeNotifier {
     _contacts = [
       // Contacts matching existing tasks in _loadMockInitialData:
       Contact(
-        name: Name(first: 'Hank', last: 'M. Zakroff'),
+        displayName: 'Hank M. Zakroff',
         phones: [Phone(number: '+(simulated)12309344')],
       ),
       Contact(
-        name: Name(first: 'Michael', last: 'Appleseed'),
+        displayName: 'Michael Appleseed',
         phones: [Phone(number: '+(simulated)15556106')],
       ),
       Contact(
-        name: Name(first: 'Anna', last: 'Haro'),
+        displayName: 'Anna Haro',
         phones: [Phone(number: '+(simulated)15555228')],
       ),
       Contact(
-        name: Name(first: 'David', last: 'Taylor'),
+        displayName: 'David Taylor',
         phones: [Phone(number: '+(simulated)15556106')],
       ),
       // Contacts not used in any initial task, available to create new tasks:
       Contact(
-        name: Name(first: 'Sarah', last: 'Connor'),
+        displayName: 'Sarah Connor',
         phones: [Phone(number: '+(simulated)57890123')],
       ),
       Contact(
-        name: Name(first: 'John', last: 'Dough'),
+        displayName: 'John Doe',
         phones: [Phone(number: '+(simulated)85098760')],
       ),
     ];

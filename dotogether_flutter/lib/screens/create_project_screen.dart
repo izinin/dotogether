@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/app_state.dart';
@@ -92,11 +93,13 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
             onPressed: () async {
               Navigator.of(dialogCtx).pop(); // Close dialog
 
-              // Trigger SMS launcher
-              await appState.sendSMSInvitation(
-                smsData['recipient']!,
-                smsData['body']!,
-              );
+              if (!appState.isDemoMode) {
+                // Trigger SMS launcher
+                await appState.sendSMSInvitation(
+                  smsData['recipient']!,
+                  smsData['body']!,
+                );
+              }
 
               // Navigate back twice (returns to Do together dashboard)
               if (mounted) {
@@ -104,9 +107,9 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                 Navigator.of(context).pop(); // Pops Friends Screen
               }
             },
-            child: const Text(
-              'OK',
-              style: TextStyle(
+            child: Text(
+              (appState.isDemoMode ? 'OK (Simulated)' : 'OK'),
+              style: const TextStyle(
                 color: Color(0xFF2196F3),
                 fontWeight: FontWeight.bold,
               ),

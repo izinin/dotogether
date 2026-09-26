@@ -61,3 +61,8 @@ GRANT ALL ON SCHEMA public TO dotogether_user;
 
 #### Adding Custom HTTP Handlers/Routes to the Web Server
 * In `Serverpod`, custom HTTP endpoints for the `webServer` are created by extending WidgetRoute (for HTML pages) or Route (for JSON/raw HTTP responses), and then adding them to `pod.webServer`.
+
+
+### Flutter UI 
+
+![alt text](image.png)
