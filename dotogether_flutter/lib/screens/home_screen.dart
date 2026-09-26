@@ -14,18 +14,18 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
 
-    // Dynamic list calculations for sub-labels
-    int receivedCount = appState.receivedProjects
-        .where((p) => p.status != 'completed')
-        .length;
-    int createdCount = appState.createdProjects
-        .where((p) => p.status != 'completed')
-        .length;
+    // Dynamic list calculations for sub-labels matching items in corresponding screens
+    int receivedCount = appState.receivedProjects.length;
+    int createdCount = appState.createdProjects.length;
 
-    String tasksSubtitle = receivedCount > 0
+    String tasksSubtitle = receivedCount == 1
+        ? '1 active task for you'
+        : receivedCount > 1
         ? '$receivedCount active tasks for you'
         : 'no active tasks';
-    String projectsSubtitle = createdCount > 0
+    String projectsSubtitle = createdCount == 1
+        ? '1 active project'
+        : createdCount > 1
         ? '$createdCount active projects'
         : 'no active projects';
 

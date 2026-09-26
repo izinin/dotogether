@@ -31,34 +31,55 @@ void main() async {
 }
 
 ThemeData _buildTheme(Brightness brightness) {
+  final isDark = brightness == Brightness.dark;
   return ThemeData(
     useMaterial3: true,
     primaryColor: const Color(0xFF2196F3),
-    scaffoldBackgroundColor: Colors.white,
+    scaffoldBackgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
     colorScheme: ColorScheme.fromSeed(
       seedColor: const Color(0xFF2196F3),
       primary: const Color(0xFF2196F3),
       secondary: Colors.blueAccent,
       brightness: brightness,
-      surface: Colors.white,
+    ),
+    // Input fields default text styling
+    inputDecorationTheme: const InputDecorationTheme(
+      // Keep input text or label styling consistent
+      hintStyle: TextStyle(color: Colors.black54),
+      labelStyle: TextStyle(color: Colors.black87),
     ),
     // Premium Typography and component spacing
     textTheme: const TextTheme(
+      // TextField/TextFormField in Material 3 defaults text style to bodyLarge
+      bodyLarge: TextStyle(
+        fontSize: 16.0,
+        letterSpacing: 0.1,
+        color: Colors.black87,
+      ),
+      // AlertDialog content text defaults to contentTextStyle or bodyMedium
+      bodyMedium: TextStyle(
+        fontSize: 14.0,
+        letterSpacing: 0.1,
+      ),
       titleLarge: TextStyle(
         fontSize: 20.0,
         fontWeight: FontWeight.bold,
         letterSpacing: 0.1,
-        color: Colors.black87,
       ),
-      bodyLarge: TextStyle(
-        fontSize: 16.0,
-        color: Colors.black87,
-        letterSpacing: 0.1,
-      ),
-      bodyMedium: TextStyle(
+    ),
+    // Explicitly configure DialogThemeData so AlertDialog content text
+    // respects theme brightness regardless of any bodyLarge or text field overrides
+    dialogTheme: DialogThemeData(
+      contentTextStyle: TextStyle(
         fontSize: 14.0,
-        color: Colors.black54,
         letterSpacing: 0.1,
+        color: isDark ? Colors.white70 : Colors.black87,
+      ),
+      titleTextStyle: TextStyle(
+        fontSize: 20.0,
+        fontWeight: FontWeight.bold,
+        letterSpacing: 0.1,
+        color: isDark ? Colors.white : Colors.black87,
       ),
     ),
     appBarTheme: const AppBarTheme(
