@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:dotogether_client/dotogether_client.dart';
-import 'package:flutter/foundation.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 import 'package:serverpod_flutter/serverpod_flutter.dart';
 
@@ -30,18 +29,4 @@ Future<void> initializeClient() async {
     ..connectivityMonitor = FlutterConnectivityMonitor()
     ..authSessionManager = FlutterAuthSessionManager();
   unawaited(client.auth.initialize());
-
-  // https://docs.serverpod.dev/next/concepts/authentication/providers/google/setup#store-your-credentials
-  final clientId =
-      "908030423310-ok7ao1su0rvi796ga57a6mg10m1agl3n.apps.googleusercontent.com";
-  if (kIsWeb) {
-    client.auth.initializeGoogleSignIn(
-      clientId: clientId,
-      redirectUri: 'http://localhost:8082/auth/callback',
-    );
-  } else {
-    client.auth.initializeGoogleSignIn(
-      serverClientId: clientId,
-    );
-  }
 }

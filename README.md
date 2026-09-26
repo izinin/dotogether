@@ -30,13 +30,28 @@ serverpod start --no-flutter                                           # from yo
 
 * Example [Accessing Google APIs server-side from a Flutter app](https://serverpod.dev/blog/flutter-google-apis-server-side)
 
-### working with endpoints
-```shell
-# 1. Generate repair migration
-serverpod create-migration --force
+### recreating database *(never try this to avoid troubles! better save `dotogether_server/config/passwords.yaml` in safe place)* 
 
-# 2. Run server with repair flag
-dart bin/main.dart --apply-repair-migration
+* run Postgres: `serverpod database start`
+* drop database: `DROP database dotogether;` 
+* create database: `CREATE DATABASE dotogether;`
+* remove migrations: `rm -rf dotogether_server/migrations/*`
+* Regenerate code definitions: `serverpod generate`
+* Create fresh baseline migration:  `serverpod create-migration`
+* apply migration: `dart bin/main.dart --apply-migrations`
+```sql
+-- 1. Create a dedicated user with a password of your choice
+CREATE USER dotogether_user WITH PASSWORD 'my_secure_password_123';
+
+-- 2. Create the application database owned by that user
+CREATE DATABASE dotogether OWNER dotogether_user;
+
+-- 3. Grant full privileges on the database to the user
+GRANT ALL PRIVILEGES ON DATABASE dotogether TO dotogether_user;
+
+-- 4. Grant schema-level permissions inside the database
+\c dotogether
+GRANT ALL ON SCHEMA public TO dotogether_user;
 ```
 
 ### Understanding API Server vs Web Server

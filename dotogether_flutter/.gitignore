@@ -32,6 +32,7 @@
 /build/
 
 # Web related
+lib/generated_plugin_registrant.dart
 
 # Symbolization related
 app.*.symbols
@@ -44,15 +45,3 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Standard Flutter iOS ignores
-ios/.ios/
-ios/Flutter/Flutter.podspec
-ios/Flutter/GeneratedPluginRegistrant.h
-ios/Flutter/GeneratedPluginRegistrant.m
-ios/Flutter/flutter_export_environment.sh
-ios/Flutter/ephemeral/
-ios/Pods/
-ios/.symlinks/
-# Ignore Xcode user-specific files
-ios/Runner.xcodeproj/project.xcworkspace/
-ios/Runner.xcodeproj/xcuserdata/

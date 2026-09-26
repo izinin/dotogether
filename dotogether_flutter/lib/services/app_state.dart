@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:dotogether_client/dotogether_client.dart';
+import 'package:dotogether_client/dotogether_client.dart' as backend;
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -50,7 +50,6 @@ class AppState extends ChangeNotifier {
   String? get currentUserUid => _currentUserUid;
   String? get currentPhoneNumber => _currentPhoneNumber;
   bool get isLoading => _isLoading;
-  bool get isAuthenticated => _isDemoMode || client.auth.isAuthenticated;
 
   List<Contact> get contacts => _contacts;
   List<Project> get createdProjects => _createdProjects;
@@ -338,7 +337,7 @@ class AppState extends ChangeNotifier {
     _currentUser = FirebaseAuth.instance.currentUser;
     _currentPhoneNumber = _currentUser?.phoneNumber;
 
-    client.phoneAuth.authenticateWithFirebasePhone(PhoneAuthPayload(
+    client.phoneAuth.authenticateWithFirebasePhone(backend.PhoneAuthPayload(
       phoneNumber: _currentUser!.phoneNumber!,
       displayName: _currentUser!.displayName ?? '',
       email: _currentUser!.email,

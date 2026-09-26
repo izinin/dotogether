@@ -47,27 +47,4 @@ If the user asks you to test the app:
 
 The app is launched from `dotogether_flutter/lib/driver.dart`, which starts the Flutter driver extension with text entry emulation turned off so the app stays usable by hand. To let the driver type, set `enableTextEntryEmulation: true` there and `hot_restart` the app.
 
-## Application Overview: Do Together
-
-"Do Together" is a collaborative task management app built with Flutter and Serverpod (4.0.1). It features two roles per task: Task Owner (creator/assigner) and Task Executor (assignee updating completion).
-### Key Features:
-  - **Authentication**: Google/Apple OAuth.
-  - **Task & Project Creation**: Assign tasks and checklist items to contacts.
-  - **Notifications & Invitations**:
-    - Registered users receive in-app push notifications for new tasks.
-    - Unregistered contacts receive an SMS containing an app download link.
-  - **Execution Tracking**: Task Executors check off items; Task Owners view overall completion percentage (0–100%) and overall status (e.g., PENDING).
-### Backend:
-  - Serverpod 4.0.1 PostgreSQL ORM with Data Models:
-    - `User` (phone number, profile details, device tokens)
-    - `Project` / `Task` (title, ownerId, executorId, overallStatus)
-    - `ChecklistItem` (taskId, title, isCompleted)
-    - `Contact` (mapping local phone contacts to registered app users)
-  - RPC endpoints in `dotogether_server/lib/src` folder.
-### UI Screens
-- Phone Number Entry & Verification
-- Home Dashboard (`My tasks`, `My projects`, `My friends`)
-- Tasks
-- Projects 
-- Contact List
-- Task Detail View (Assignor info, Overall progress, Interactive checklist)
+IMPORTANT: After building the first version of the app, update this AGENTS.md file with information about the app we're building. KEEP the info about the MCP server and the checklist. Remove this paragraph.

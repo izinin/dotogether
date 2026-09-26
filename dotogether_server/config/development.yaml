@@ -9,24 +9,24 @@
 # Configuration for the main API server.
 apiServer:
   port: 8080
-  # publicHost: 10.66.11.24
   publicHost: localhost
+  # publicHost: 10.66.11.24
   publicPort: 8080
   publicScheme: http
 
 # Configuration for the Insights server.
 insightsServer:
   port: 8081
-  # publicHost: 10.66.11.24
   publicHost: localhost
+  # publicHost: 10.66.11.24
   publicPort: 8081
   publicScheme: http
 
 # Configuration for the web server.
 webServer:
   port: 8082
-  # publicHost: 10.66.11.24
   publicHost: localhost
+  # publicHost: 10.66.11.24
   publicPort: 8082
   publicScheme: http
 
@@ -56,9 +56,9 @@ sessionLogs:
   consoleEnabled: true
   consoleLogFormat: text # Defaults to "json", options are "text" or "json"
 
-# futureCallExecutionEnabled: true # Defaults to true
-
 #futureCall:
+#  enabled: true # Defaults to true, set to false to disable scheduling and running future calls
+#  executionEnabled: true # Defaults to true
 #  concurrencyLimit: 1 # Defaults to 1, a negative or null value removes the limit
 #  scanInterval: 5000 # Unit in milliseconds, defaults to 5000
 

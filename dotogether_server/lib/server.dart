@@ -1,14 +1,13 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:serverpod_auth_idp_server/core.dart';
 import 'package:serverpod_auth_idp_server/providers/email.dart';
-import 'package:serverpod_auth_idp_server/providers/google.dart';
 import 'package:serverpod_cloud_storage/serverpod_cloud_storage.dart';
 
 import 'src/cache_busting.dart';
 import 'src/generated/serverpod.dart';
 import 'src/web/routes/app_config_route.dart';
+import 'src/web/routes/root.dart';
 
 /// The starting point of the Serverpod server.
 void run(List<String> args) async {
@@ -26,20 +25,21 @@ void run(List<String> args) async {
     ],
     identityProviderBuilders: [
       // Configure the email identity provider for email/password authentication.
+      // The default setup works with Serverpod Cloud without configuration. In
+      // development the verification codes are logged to the console, and in
+      // staging and production they are sent through the Serverpod Cloud email
+      // service. If you want to use a custom provider for sending emails, use
+      // `EmailIdpConfigFromPasswords`.
       ServerpodCloudEmailIdpConfig(
         appDisplayName: 'dotogether',
       ),
-      GoogleIdpConfigFromPasswords(),
     ],
   );
 
-  pod.webServer.addRoute(
-    // The FlutterWebAuth2CallbackRoute is a generic OAuth2 PKCE popup handler. 
-    // It works by capturing the OAuth code/token parameters from the popup window URL
-    // and sending them back to the main Flutter web window using browser postMessage communication.
-    FlutterWebAuth2CallbackRoute(),
-    '/auth/callback', // Single callback endpoint for ALL web auth providers
-  );
+  // Setup a default page at the web root.
+  // These are used by the default page.
+  pod.webServer.addRoute(RootRoute(), '/');
+  pod.webServer.addRoute(RootRoute(), '/index.html');
 
   // Serve all files in the web/static relative directory under /web.
   // These are used by the default web page.
@@ -53,13 +53,13 @@ void run(List<String> args) async {
   // the flutter app.
   pod.webServer.addRoute(
     AppConfigRoute(apiConfig: pod.config.apiServer),
-    '/assets/assets/config.json',
+    '/app/assets/assets/config.json',
   );
 
   // Checks if the flutter web app has been built and serves it if it has.
   final appDir = Directory(Uri(path: 'web/app').toFilePath());
   if (appDir.existsSync()) {
-    // Serve the flutter web app under /.
+    // Serve the flutter web app under the /app path.
     pod.webServer.addRoute(
       FlutterRoute(
         appDir,
@@ -67,7 +67,7 @@ void run(List<String> args) async {
         // true and add the --wasm flag to the flutter build command.
         enableWasmHeaders: false,
       ),
-      '/',
+      '/app',
     );
   } else {
     // If the flutter web app has not been built, serve the build app page.
@@ -77,17 +77,9 @@ void run(List<String> args) async {
       ),
     );
 
-    pod.webServer.addMiddleware(
-      FallbackMiddleware(
-        fallback: defaultRoute,
-        on: (response) => response.statusCode == 404,
-      ).call,
-      '/',
-    );
-
     pod.webServer.addRoute(
       defaultRoute,
-      '/**',
+      '/app/**',
     );
   }
 

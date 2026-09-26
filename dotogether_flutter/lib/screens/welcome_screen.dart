@@ -34,16 +34,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     }
   }
 
-  Future<void> _handleAuthenticated() async {
-    debugPrint('User authenticated successfully.');
-    final appState = Provider.of<AppState>(context, listen: false);
-    await appState.ensureUserInDatabase();
-    if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
-    );
-  }
-
   void _handleTutorial() {
     debugPrint('Starting tutorial in demo mode.');
     final appState = Provider.of<AppState>(context, listen: false);
@@ -58,7 +48,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     final appState = Provider.of<AppState>(context);
 
     // If authenticated and finished loading, navigate to HomeScreen
-    if (appState.isAuthenticated && !appState.isLoading) {
+    if (client.auth.isAuthenticated && !appState.isLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         Navigator.of(context).pushReplacement(
@@ -201,19 +191,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     style: authButtonStyle,
                   ),
                 ),
-                /*
-                const SizedBox(height: 12),
-                SignInWidget(
-                  client: client,
-                  disableEmailSignInWidget: true,
-                  onAuthenticated: _handleAuthenticated,
-                  onError: (error) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $error')),
-                    );
-                  },
-                ),
-                */
               ],
               const SizedBox(height: 48),
             ],

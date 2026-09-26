@@ -9,8 +9,6 @@ void main() {
   // Note that after adding or modifying an endpoint, you will need to run
   // `serverpod generate` to update the test tools code.
   // Refer to the docs for more information on how to use the test helper.
-
-  /* TODO: use example below to make unit test
   withServerpod('Given Greeting endpoint', (sessionBuilder, endpoints) {
     test(
       'when calling `hello` with name then returned greeting includes name',
@@ -23,5 +21,4 @@ void main() {
       },
     );
   });
-  */
 }

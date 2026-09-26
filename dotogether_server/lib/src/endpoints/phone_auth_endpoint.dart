@@ -10,7 +10,7 @@ class PhoneAuthEndpoint extends Endpoint {
     PhoneAuthPayload firebaseUser,
   ) async {
     final newUserInfo = UserInfo(
-      userIdentifier: firebaseUser.phoneNumber!, // Required: e.g., phone number or provider UID
+      userIdentifier: firebaseUser.phoneNumber, // Required: e.g., phone number or provider UID
       created: DateTime.now().toUtc(), // Required: timestamp in UTC
       scopeNames: [], // Required: list of access scope strings
       blocked: false, // Required: sign-in block status

@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_DB: dotogether
-      POSTGRES_PASSWORD: "_KDlyITdf-Vdn15AckIA2i7ED_3y4r-l"
+      POSTGRES_PASSWORD: "QpTSXGvQj3YgK0T5K_iX0qK-8o4H149x"
     volumes:
       - dotogether_data:/var/lib/postgresql/data
 
@@ -15,7 +15,7 @@ services:
     image: redis:6.2.6
     ports:
       - "8091:6379"
-    command: redis-server --requirepass "Ut4Wlh9gxogOkUpHvPQAoeuXKqvQKcJ2"
+    command: redis-server --requirepass "bJpWzLr5OsNQDi-8449kD9yMoEvCyH-f"
     environment:
       - REDIS_REPLICATION_MODE=master
 
@@ -27,7 +27,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_DB: dotogether_test
-      POSTGRES_PASSWORD: "cO4KUJBt6inKgbKlj2V6NpOBjmQ8bSIM"
+      POSTGRES_PASSWORD: "wbvbzyAlejDowHbRTblh7EnxeYt6aXOJ"
     volumes:
       - dotogether_test_data:/var/lib/postgresql/data
 
@@ -35,7 +35,7 @@ services:
     image: redis:6.2.6
     ports:
       - "9091:6379"
-    command: redis-server --requirepass "ItivgNIbvrU9QsgW1D0Ssc0rCiZe7heW"
+    command: redis-server --requirepass "x0JzBh-ZB8ai2OR4sY9h-_1caiHp-RKK"
     environment:
       - REDIS_REPLICATION_MODE=master
 
