@@ -29,7 +29,7 @@
             "type": "dart"
         },
         {
-            "name": "dotogether_iphone_device",
+            "name": "dotogether_physical_device",
             "cwd": "dotogether_flutter",
             "request": "launch",
             "type": "dart",
