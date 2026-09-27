@@ -12,7 +12,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class AppState extends ChangeNotifier {
   bool _isDemoMode = false; // Running with hardcoded demo functionality
-  bool _isInitialized = false;
 
   User? _currentUser;
   String? _currentUserUid;
@@ -46,7 +45,6 @@ class AppState extends ChangeNotifier {
 
   // Getters
   bool get isDemoMode => _isDemoMode;
-  bool get isInitialized => _isInitialized;
   String? get currentUserUid => _currentUserUid;
   String? get currentPhoneNumber => _currentPhoneNumber;
   bool get isLoading => _isLoading;
@@ -120,14 +118,13 @@ class AppState extends ChangeNotifier {
   }
 
   /// Initialize state
-  Future<void> _initialize() async {
-    await _initFirebaseAuth();
+  Future<bool> _initialize() async {
+    bool isInitialized = await _initFirebaseAuth();
     if (client.auth.isAuthenticated) {
       await ensureUserInDatabase();
     }
-    _loadMockInitialData();
-    _isInitialized = true;
     notifyListeners();
+    return isInitialized;
   }
 
   /// Load screenshot-matching data for the Simulation/Demo mode
@@ -291,28 +288,6 @@ class AppState extends ChangeNotifier {
   /// Step 3: Verify the SMS Code and Sign In
   Future<bool> verifySmsCode(String smsCode) async {
     _isLoading = true;
-    _smsCodeError = '';
-    notifyListeners();
-
-    if (_isDemoMode) {
-      await Future.delayed(const Duration(seconds: 1500 ~/ 1000));
-      // In demo mode, accept code '123456' or any 6-digit code
-      if (smsCode.length == 6) {
-        _currentPhoneNumber = _registrationPhone;
-        _isDemoMode = true; // Keep demo active but logged in
-        _loadMockInitialData(); // Reload projects with the registered phone
-        _isLoading = false;
-        _registrationStep = 1;
-        notifyListeners();
-        return true;
-      } else {
-        _isLoading = false;
-        _smsCodeError = "Invalid verification code. Enter a 6-digit number.";
-        notifyListeners();
-        return false;
-      }
-    }
-
     try {
       PhoneAuthCredential credential = PhoneAuthProvider.credential(
         verificationId: _verificationId,
@@ -339,9 +314,9 @@ class AppState extends ChangeNotifier {
 
     client.phoneAuth.authenticateWithFirebasePhone(backend.PhoneAuthPayload(
       phoneNumber: _currentUser!.phoneNumber!,
-      displayName: _currentUser!.displayName ?? '',
-      email: _currentUser!.email,
-      photoUrl: _currentUser!.photoURL,
+      displayName: _currentUser!.displayName ?? 'please fill your name',
+      email: _currentUser!.email ?? 'please add your email',
+      photoUrl: _currentUser!.photoURL ?? 'please add your photo',
     ));
 
     _isLoading = false;
@@ -359,7 +334,7 @@ class AppState extends ChangeNotifier {
   }
 
   /// Initialize Firebase or fallback to Demo Mode
-  Future<void> _initFirebaseAuth() async {
+  Future<bool> _initFirebaseAuth() async {
     try {
       // Try to initialize Firebase
       await Firebase.initializeApp();
@@ -374,19 +349,12 @@ class AppState extends ChangeNotifier {
         _currentPhoneNumber = user?.phoneNumber;
         notifyListeners();
       });
+      return true;
     } catch (e) {
-      _isDemoMode = true;
-      debugPrint(
-        e.toString(),
-      );
-      debugPrint(
-        "DoTogether: Firebase configuration is not completed or missing. Running in DEMO/SIMULATION mode.",
-      );
-      _loadMockInitialData();
+      _isLoading = false;
+      _smsCodeError = "Error Firebase initialization: ${e.toString()}";
+      return false;
     }
-
-    _isInitialized = true;
-    notifyListeners();
   }
 
   // ================= CONTACTS HANDLER =================
@@ -426,7 +394,6 @@ class AppState extends ChangeNotifier {
 
   void _loadSimulatedContacts() {
     _contacts = [
-      // Contacts matching existing tasks in _loadMockInitialData:
       Contact(
         displayName: 'Hank M. Zakroff',
         phones: [Phone(number: '+(simulated)12309344')],
