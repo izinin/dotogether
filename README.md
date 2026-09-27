@@ -1,5 +1,16 @@
 # a TODO collaboration tool with friends
 
+## deployment
+* deploy: `scloud launch`
+* check urls: `scloud domain list`
+* Serverpod Cloud project ID is: `dotogether`
+When the server has started, you can access it at:
+   Web:      https://dotogether.serverpod.space/
+   API:      https://dotogether.api.serverpod.space/
+   Insights: https://dotogether.insights.serverpod.space/
+* to see how to view deployment statuses, run this command: `scloud help status`
+
+
 ## development
 * install serverpod [see quickstart](https://docs.serverpod.dev/quickstart?utm_source=builderbase&utm_medium=event&utm_campaign=hackathon_serverpod_4_26&utm_content=quickstart): `dart install serverpod_cli`
 * run project: start server: `serverpod start`
