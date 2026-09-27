@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:dotogether_client/dotogether_client.dart' as backend;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:recaptcha_enterprise_flutter/recaptcha.dart';
+import 'package:recaptcha_enterprise_flutter/recaptcha_client.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/project.dart';
 import '../utils/phone_number_utility.dart';
@@ -77,10 +80,20 @@ class AppState extends ChangeNotifier {
 
   Future<void> _initialize() async {
     await _initFirebaseAuth();
+    await _initRecaptchaClient();
     if (client.auth.isAuthenticated) {
       await ensureUserInDatabase();
     }
     notifyListeners();
+  }
+
+  Future<void> _initRecaptchaClient() async {
+    // https://pub.dev/packages/recaptcha_enterprise_flutter
+  final siteKey = Platform.isAndroid
+      ? "6Le85c4tAAAAAIke5x8jNxjzOEQSujO36SyeXDJw"
+      : "6Ldu-c4tAAAAAFZBglNMN6H-Cf8eZurqDwqNU6sG";
+
+  RecaptchaClient client = await Recaptcha.fetchClient(siteKey);
   }
 
   /// Initialize Firebase or fallback to Demo Mode
@@ -276,19 +289,6 @@ class AppState extends ChangeNotifier {
     notifyListeners();
 
     _registrationPhone = PhoneNumberUtility.normalize(rawPhoneNumber);
-
-    if (_isDemoMode) {
-      // Simulate network request to Firebase Auth
-      await Future.delayed(const Duration(seconds: 2));
-      _isLoading = false;
-      _registrationStep = 3; // Move to step 3 (Enter verification code)
-      notifyListeners();
-      debugPrint(
-        "DoTogether: (Demo Mode) SMS verification code requested for $_registrationPhone",
-      );
-      return;
-    }
-
     try {
       await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: _registrationPhone,
