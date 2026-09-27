@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:dotogether_client/dotogether_client.dart' as backend;
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:recaptcha_enterprise_flutter/recaptcha.dart';
 import 'package:recaptcha_enterprise_flutter/recaptcha_client.dart';
@@ -89,11 +88,12 @@ class AppState extends ChangeNotifier {
 
   Future<void> _initRecaptchaClient() async {
     // https://pub.dev/packages/recaptcha_enterprise_flutter
-  final siteKey = Platform.isAndroid
-      ? "6Le85c4tAAAAAIke5x8jNxjzOEQSujO36SyeXDJw"
-      : "6Ldu-c4tAAAAAFZBglNMN6H-Cf8eZurqDwqNU6sG";
+    final siteKey = Platform.isAndroid
+        ? "6Le85c4tAAAAAIke5x8jNxjzOEQSujO36SyeXDJw"
+        : "6Ldu-c4tAAAAAFZBglNMN6H-Cf8eZurqDwqNU6sG";
 
-  RecaptchaClient client = await Recaptcha.fetchClient(siteKey);
+    // TODO: learn more about the RecaptchaClient usage and how to integrate it with the app's auth flow
+    RecaptchaClient client = await Recaptcha.fetchClient(siteKey);
   }
 
   /// Initialize Firebase or fallback to Demo Mode
@@ -293,7 +293,6 @@ class AppState extends ChangeNotifier {
       await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: _registrationPhone,
         verificationCompleted: (PhoneAuthCredential credential) async {
-          // Auto-resolution (on Android devices)
           await FirebaseAuth.instance.signInWithCredential(credential);
           _onAuthSuccess();
         },
@@ -349,7 +348,7 @@ class AppState extends ChangeNotifier {
     _currentUser = FirebaseAuth.instance.currentUser;
     _currentPhoneNumber = _currentUser?.phoneNumber;
 
-    client.phoneAuth.authenticateWithFirebasePhone(
+    final authResponse = await client.phoneAuth.authenticateWithFirebasePhone(
       backend.PhoneAuthPayload(
         phoneNumber: _currentUser!.phoneNumber!,
         displayName: _currentUser!.displayName ?? 'please fill your name',
@@ -357,7 +356,13 @@ class AppState extends ChangeNotifier {
         photoUrl: _currentUser!.photoURL ?? 'please add your photo',
       ),
     );
-
+    // Register the session if authentication succeeded
+    if (authResponse.success) {
+      // https://docs.serverpod.dev/next/concepts/authentication/basics#register-authentication
+      AuthSuccess? authInfo = client.auth.authInfo;
+      await client.auth.updateSignedInUser(authInfo);
+      debugPrint('Successfully logged in to Serverpod session!');
+    }
     _isLoading = false;
     _registrationStep = 1;
     notifyListeners();
