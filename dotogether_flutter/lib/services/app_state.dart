@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:dotogether_client/dotogether_client.dart' as backend;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -19,7 +20,8 @@ class AppState extends ChangeNotifier {
   bool _isLoading = false;
 
   // Stepper Registration State
-  int _registrationStep = 1; // 1: Input phone, 2: Loading/SMS code sent in progress, 3: Verify code
+  int _registrationStep =
+      1; // 1: Input phone, 2: Loading/SMS code sent in progress, 3: Verify code
   String _registrationPhone = '';
   String _verificationId = '';
   String _smsCodeError = '';
@@ -29,6 +31,9 @@ class AppState extends ChangeNotifier {
   String get registrationPhone => _registrationPhone;
   String get smsCodeError => _smsCodeError;
   String get phoneError => _phoneError;
+
+  String? _initializeError;
+  String? get initializeError => _initializeError;
 
   // Contacts State
   List<Contact> _contacts = [];
@@ -55,9 +60,51 @@ class AppState extends ChangeNotifier {
   bool get isLoadingContacts => _isLoadingContacts;
   bool get hasContactPermission => _hasContactPermission;
 
-  AppState() {
-    _initialize();
+  // Private constructor
+  AppState._internal() {
     client.auth.authInfoListenable.addListener(_onAuthChanged);
+  }
+
+  /// Async factory initializer
+  static Future<AppState> create() async {
+    final state = AppState._internal();
+    if (kIsWeb) {
+      return state;
+    }
+    await state._initialize();
+    return state;
+  }
+
+  Future<void> _initialize() async {
+    await _initFirebaseAuth();
+    if (client.auth.isAuthenticated) {
+      await ensureUserInDatabase();
+    }
+    notifyListeners();
+  }
+
+  /// Initialize Firebase or fallback to Demo Mode
+  Future<void> _initFirebaseAuth() async {
+    _isLoading = true;
+    _initializeError = null;
+    try {
+      // Try to initialize Firebase
+      await Firebase.initializeApp();
+      _isDemoMode = false;
+      debugPrint(
+        "DoTogether: Firebase initialized successfully. Running in LIVE mode.",
+      );
+
+      // Listen to Auth State
+      FirebaseAuth.instance.authStateChanges().listen((User? user) {
+        _currentUser = user;
+        _currentPhoneNumber = user?.phoneNumber;
+        notifyListeners();
+      });
+    } catch (e) {
+      _initializeError = 'Failed to initialize app: ${e.toString()}';
+    }
+    _isLoading = false;
   }
 
   @override
@@ -115,16 +162,6 @@ class AppState extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
-  }
-
-  /// Initialize state
-  Future<bool> _initialize() async {
-    bool isInitialized = await _initFirebaseAuth();
-    if (client.auth.isAuthenticated) {
-      await ensureUserInDatabase();
-    }
-    notifyListeners();
-    return isInitialized;
   }
 
   /// Load screenshot-matching data for the Simulation/Demo mode
@@ -312,12 +349,14 @@ class AppState extends ChangeNotifier {
     _currentUser = FirebaseAuth.instance.currentUser;
     _currentPhoneNumber = _currentUser?.phoneNumber;
 
-    client.phoneAuth.authenticateWithFirebasePhone(backend.PhoneAuthPayload(
-      phoneNumber: _currentUser!.phoneNumber!,
-      displayName: _currentUser!.displayName ?? 'please fill your name',
-      email: _currentUser!.email ?? 'please add your email',
-      photoUrl: _currentUser!.photoURL ?? 'please add your photo',
-    ));
+    client.phoneAuth.authenticateWithFirebasePhone(
+      backend.PhoneAuthPayload(
+        phoneNumber: _currentUser!.phoneNumber!,
+        displayName: _currentUser!.displayName ?? 'please fill your name',
+        email: _currentUser!.email ?? 'please add your email',
+        photoUrl: _currentUser!.photoURL ?? 'please add your photo',
+      ),
+    );
 
     _isLoading = false;
     _registrationStep = 1;
@@ -331,30 +370,6 @@ class AppState extends ChangeNotifier {
     _smsCodeError = '';
     _isLoading = false;
     notifyListeners();
-  }
-
-  /// Initialize Firebase or fallback to Demo Mode
-  Future<bool> _initFirebaseAuth() async {
-    try {
-      // Try to initialize Firebase
-      await Firebase.initializeApp();
-      _isDemoMode = false;
-      debugPrint(
-        "DoTogether: Firebase initialized successfully. Running in LIVE mode.",
-      );
-
-      // Listen to Auth State
-      FirebaseAuth.instance.authStateChanges().listen((User? user) {
-        _currentUser = user;
-        _currentPhoneNumber = user?.phoneNumber;
-        notifyListeners();
-      });
-      return true;
-    } catch (e) {
-      _isLoading = false;
-      _smsCodeError = "Error Firebase initialization: ${e.toString()}";
-      return false;
-    }
   }
 
   // ================= CONTACTS HANDLER =================

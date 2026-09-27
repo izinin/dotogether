@@ -22,9 +22,12 @@ void main() async {
     ),
   );
 
+  // Await initialization before running the UI root
+  final appState = await AppState.create();
+
   runApp(
     ChangeNotifierProvider(
-      create: (context) => AppState(),
+      create: (context) => appState,
       child: const DoTogetherApp(),
     ),
   );

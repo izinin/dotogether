@@ -188,7 +188,22 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                if (!kIsWeb)
+
+                // Display inline error view if initialization failed
+                if (appState.initializeError != null)
+                  Row(
+                    children: [
+                      Icon(Icons.error_outline, color: Colors.red),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          appState.initializeError!,
+                          style: TextStyle(color: Colors.black87, fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  )
+                else if (!kIsWeb)
                   SizedBox(
                     width: 250, // Match width of Google Button
                     height: 44,
