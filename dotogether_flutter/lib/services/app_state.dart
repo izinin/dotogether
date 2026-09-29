@@ -14,6 +14,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AppState extends ChangeNotifier {
+  late RecaptchaClient _recaptchaClient;
   bool _isDemoMode = false; // Running with hardcoded demo functionality
 
   User? _currentUser;
@@ -40,7 +41,6 @@ class AppState extends ChangeNotifier {
   // Contacts State
   List<Contact> _contacts = [];
   bool _isLoadingContacts = false;
-  bool _hasContactPermission = false;
 
   // Local/Mock Database State (for Demo Mode)
   final List<Project> _mockProjects = [];
@@ -51,6 +51,7 @@ class AppState extends ChangeNotifier {
   List<Project> _receivedProjects = [];
 
   // Getters
+  RecaptchaClient get recaptchaClient => _recaptchaClient;
   bool get isDemoMode => _isDemoMode;
   String? get currentUserUid => _currentUserUid;
   String? get currentPhoneNumber => _currentPhoneNumber;
@@ -60,7 +61,6 @@ class AppState extends ChangeNotifier {
   List<Project> get createdProjects => _createdProjects;
   List<Project> get receivedProjects => _receivedProjects;
   bool get isLoadingContacts => _isLoadingContacts;
-  bool get hasContactPermission => _hasContactPermission;
 
   // Private constructor
   AppState._internal() {
@@ -80,12 +80,34 @@ class AppState extends ChangeNotifier {
   Future<void> _initialize() async {
     await _initFirebaseAuth();
     await _initRecaptchaClient();
+    // await _restoreUserSessionIfAny();
     if (client.auth.isAuthenticated) {
       await ensureUserInDatabase();
     }
     notifyListeners();
   }
+/*
+  Future<void> _restoreUserSessionIfAny() async {
+    try {
+      _isLoading = true;
+      notifyListeners();
 
+      // 1. Explicitly await SessionManager state restoration from disk
+      await sessionManager.initialize();
+
+      // 2. Now check if the user is authenticated
+      if (client.auth.isAuthenticated) {
+        // Optional: Verify session is still valid on Serverpod backend
+        await ensureUserInDatabase();
+      }
+    } catch (e) {
+      _initializeError = 'Session restoration error: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+*/
   Future<void> _initRecaptchaClient() async {
     // https://pub.dev/packages/recaptcha_enterprise_flutter
     final siteKey = Platform.isAndroid
@@ -93,7 +115,7 @@ class AppState extends ChangeNotifier {
         : "6Ldu-c4tAAAAAFZBglNMN6H-Cf8eZurqDwqNU6sG";
 
     // TODO: learn more about the RecaptchaClient usage and how to integrate it with the app's auth flow
-    RecaptchaClient client = await Recaptcha.fetchClient(siteKey);
+    _recaptchaClient = await Recaptcha.fetchClient(siteKey);
   }
 
   /// Initialize Firebase or fallback to Demo Mode
@@ -389,9 +411,8 @@ class AppState extends ChangeNotifier {
       final permission = await FlutterContacts.permissions.request(
         PermissionType.read,
       );
-      _hasContactPermission = permission == PermissionStatus.granted;
 
-      if (!_isDemoMode && permission == PermissionStatus.granted) {
+      if (!_isDemoMode && [PermissionStatus.granted, PermissionStatus.limited].contains(permission)) {
         List<Contact> deviceContacts = await FlutterContacts.getAll(
           properties: {
             ContactProperty.name,

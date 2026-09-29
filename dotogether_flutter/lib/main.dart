@@ -108,6 +108,27 @@ class DoTogetherApp extends StatelessWidget {
       darkTheme: _buildTheme(Brightness.dark),
       themeMode: ThemeMode.system,
       home: const WelcomeScreen(),
+      onGenerateRoute: (settings) {
+        // Intercept Firebase reCAPTCHA deep links and prevent Flutter Navigator errors
+        if (settings.name != null && settings.name!.startsWith('/link')) {
+          // Return a transparent route that immediately dismisses itself
+          return PageRouteBuilder(
+            opaque:
+                false, // Prevents black screen by keeping underlying screen visible
+            pageBuilder: (context, _, _) {
+              FocusManager.instance.primaryFocus?.unfocus();
+              // Pop immediately on the next frame so Navigator stays on AuthWithSmsScreen
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                }
+              });
+              return const SizedBox.shrink();
+            },
+          );
+        }
+        return null; // Fall back to normal route handling
+      },
     );
   }
 }

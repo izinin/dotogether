@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/app_state.dart';
 import 'home_screen.dart';
+import 'welcome_screen.dart';
 
 class AuthWithSmsScreen extends StatefulWidget {
   const AuthWithSmsScreen({super.key});
@@ -12,7 +13,7 @@ class AuthWithSmsScreen extends StatefulWidget {
 
 class _AuthWithSmsScreenState extends State<AuthWithSmsScreen> {
   final TextEditingController _phoneController = TextEditingController(
-    text: "358442096093",
+    text: "+358442023855",
   ); // Pre-filled from screenshot
   final TextEditingController _codeController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -24,22 +25,20 @@ class _AuthWithSmsScreenState extends State<AuthWithSmsScreen> {
     super.dispose();
   }
 
+  void _navigateBackToWelcome() {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final activeStep = appState.registrationStep;
-
-    // Check if authenticated
-    if (appState.currentPhoneNumber != null &&
-        activeStep == 1 &&
-        !appState.isLoading) {
-      // Delay navigation slightly to prevent build-phase route changes
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
-      });
-    }
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -47,6 +46,11 @@ class _AuthWithSmsScreenState extends State<AuthWithSmsScreen> {
         backgroundColor: const Color(
           0xFF2196F3,
         ), // Vibrant Blue from screenshot
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          tooltip: 'Back',
+          onPressed: _navigateBackToWelcome,
+        ),
         title: const Text(
           'Welcome',
           style: TextStyle(
@@ -70,22 +74,13 @@ class _AuthWithSmsScreenState extends State<AuthWithSmsScreen> {
                 _buildStepperRow(
                   stepNumber: 1,
                   title: 'Your phone number',
-                  subtitle: 'enter your phone number',
+                  subtitle: 'Phone number with country code (+xxxx)',
                   isActive: activeStep >= 1,
                   isCompleted: activeStep > 1,
                   child: activeStep == 1
                       ? Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const SizedBox(height: 16),
-                            const Text(
-                              'Phone number (+x xxx-xxx-xxxx)',
-                              style: TextStyle(
-                                color: Color(0xFF2196F3),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
                             TextFormField(
                               controller: _phoneController,
                               keyboardType: TextInputType.phone,
@@ -94,7 +89,7 @@ class _AuthWithSmsScreenState extends State<AuthWithSmsScreen> {
                                 letterSpacing: 0.5,
                               ),
                               decoration: const InputDecoration(
-                                hintText: '358442096093',
+                                hintText: 'example +123456789',
                                 hintStyle: TextStyle(color: Colors.grey),
                                 isDense: true,
                                 contentPadding: EdgeInsets.symmetric(
@@ -116,6 +111,9 @@ class _AuthWithSmsScreenState extends State<AuthWithSmsScreen> {
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
                                   return 'Please enter your phone number';
+                                }
+                                if (!value.startsWith('+')) {
+                                  return 'Invalid phone number. Must start with +';
                                 }
                                 return null;
                               },
