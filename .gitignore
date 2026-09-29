@@ -9,3 +9,4 @@ build
 # scloud deployment generated files should not be committed to git
 **/.scloud/
 dotogether_flutter/ios/Runner.xcodeproj/project.xcworkspace/xcshareddata
+gradle-daemon-jvm.properties
