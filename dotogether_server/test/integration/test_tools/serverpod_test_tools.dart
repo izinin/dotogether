@@ -24,7 +24,6 @@ import 'package:dotogether_server/src/generated/project.dart' as _i4y9nq59;
 import 'package:serverpod/serverpod.dart' as _is;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _iacs;
-import 'package:serverpod_auth_server/serverpod_auth_server.dart' as _i1n3uhu0;
 import 'package:serverpod_test/serverpod_test.dart' as _ist;
 import 'package:dotogether_server/src/generated/protocol.dart';
 import 'package:dotogether_server/src/generated/endpoints.dart';
@@ -729,7 +728,7 @@ class _PhoneAuthEndpoint {
 
   final _is.SerializationManager _serializationManager;
 
-  _ida.Future<_i1n3uhu0.AuthenticationResponse> authenticateWithFirebasePhone(
+  _ida.Future<_iacs.AuthSuccess?> authenticateWithFirebasePhone(
     _ist.TestSessionBuilder sessionBuilder,
     _imlgohb7.PhoneAuthPayload firebaseUser,
   ) async {
@@ -752,7 +751,7 @@ class _PhoneAuthEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _ida.Future<_i1n3uhu0.AuthenticationResponse>);
+                as _ida.Future<_iacs.AuthSuccess?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

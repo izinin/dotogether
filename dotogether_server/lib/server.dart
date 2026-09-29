@@ -21,19 +21,11 @@ void run(List<String> args) async {
   pod.initializeAuthServices(
     tokenManagerBuilders: [
       // Use JWT for authentication keys towards the server.
-      JwtConfigFromPasswords(),
-    ],
-    identityProviderBuilders: [
-      // Configure the email identity provider for email/password authentication.
-      // The default setup works with Serverpod Cloud without configuration. In
-      // development the verification codes are logged to the console, and in
-      // staging and production they are sent through the Serverpod Cloud email
-      // service. If you want to use a custom provider for sending emails, use
-      // `EmailIdpConfigFromPasswords`.
-      ServerpodCloudEmailIdpConfig(
-        appDisplayName: 'dotogether',
+      JwtConfigFromPasswords(
+        issuer: 'dotogether',
       ),
     ],
+    identityProviderBuilders: [ ],
   );
 
   // Setup a default page at the web root.

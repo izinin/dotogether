@@ -80,34 +80,14 @@ class AppState extends ChangeNotifier {
   Future<void> _initialize() async {
     await _initFirebaseAuth();
     await _initRecaptchaClient();
-    // await _restoreUserSessionIfAny();
+
+    await client.auth.restore();
     if (client.auth.isAuthenticated) {
       await ensureUserInDatabase();
     }
     notifyListeners();
   }
-/*
-  Future<void> _restoreUserSessionIfAny() async {
-    try {
-      _isLoading = true;
-      notifyListeners();
 
-      // 1. Explicitly await SessionManager state restoration from disk
-      await sessionManager.initialize();
-
-      // 2. Now check if the user is authenticated
-      if (client.auth.isAuthenticated) {
-        // Optional: Verify session is still valid on Serverpod backend
-        await ensureUserInDatabase();
-      }
-    } catch (e) {
-      _initializeError = 'Session restoration error: $e';
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-*/
   Future<void> _initRecaptchaClient() async {
     // https://pub.dev/packages/recaptcha_enterprise_flutter
     final siteKey = Platform.isAndroid
@@ -370,7 +350,7 @@ class AppState extends ChangeNotifier {
     _currentUser = FirebaseAuth.instance.currentUser;
     _currentPhoneNumber = _currentUser?.phoneNumber;
 
-    final authResponse = await client.phoneAuth.authenticateWithFirebasePhone(
+    final authSuccess = await client.phoneAuth.authenticateWithFirebasePhone(
       backend.PhoneAuthPayload(
         phoneNumber: _currentUser!.phoneNumber!,
         displayName: _currentUser!.displayName ?? 'please fill your name',
@@ -378,13 +358,13 @@ class AppState extends ChangeNotifier {
         photoUrl: _currentUser!.photoURL ?? 'please add your photo',
       ),
     );
-    // Register the session if authentication succeeded
-    if (authResponse.success) {
-      // https://docs.serverpod.dev/next/concepts/authentication/basics#register-authentication
-      AuthSuccess? authInfo = client.auth.authInfo;
-      await client.auth.updateSignedInUser(authInfo);
-      debugPrint('Successfully logged in to Serverpod session!');
+
+    // https://docs.serverpod.dev/next/concepts/authentication/basics#register-authentication
+    await client.auth.updateSignedInUser(authSuccess);
+    if (client.auth.isAuthenticated) {
+      debugPrint('User is authenticated with Serverpod.');
     }
+
     _isLoading = false;
     _registrationStep = 1;
     notifyListeners();
@@ -412,7 +392,11 @@ class AppState extends ChangeNotifier {
         PermissionType.read,
       );
 
-      if (!_isDemoMode && [PermissionStatus.granted, PermissionStatus.limited].contains(permission)) {
+      if (!_isDemoMode &&
+          [
+            PermissionStatus.granted,
+            PermissionStatus.limited,
+          ].contains(permission)) {
         List<Contact> deviceContacts = await FlutterContacts.getAll(
           properties: {
             ContactProperty.name,

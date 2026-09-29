@@ -1,20 +1,34 @@
 // Serverpod Custom Endpoint (server-side)
 import 'package:dotogether_server/src/generated/protocol.dart';
 import 'package:serverpod/serverpod.dart';
+import 'package:serverpod_auth_idp_server/core.dart';
 import 'package:serverpod_auth_server/serverpod_auth_server.dart';
 
 // Provides: AuthenticationResponse, UserInfo, userAuthentication, etc.
 class PhoneAuthEndpoint extends Endpoint {
-  Future<AuthenticationResponse> authenticateWithFirebasePhone(
+
+// Create a constant namespace UUID for your app's phone IDs
+  static final _phoneNamespace = UuidValue.fromString('6ba7b810-9dad-11d1-80b4-00c04fd430c8');
+
+  /// Converts any phone number string deterministically into a valid UuidValue
+  UuidValue _phoneToUuid(String phoneNumber) {
+    // Generate UUID v5 based on the phone string
+    final uuidString = const Uuid().v5(_phoneNamespace.uuid, phoneNumber);
+    return UuidValue.fromString(uuidString);
+  }
+
+  Future<AuthSuccess?> authenticateWithFirebasePhone(
     Session session,
     PhoneAuthPayload firebaseUser,
   ) async {
+    final userUuid = _phoneToUuid(firebaseUser.phoneNumber);
     final newUserInfo = UserInfo(
-      userIdentifier: firebaseUser.phoneNumber, // Required: e.g., phone number or provider UID
+      userIdentifier: userUuid.toString(),
       created: DateTime.now().toUtc(), // Required: timestamp in UTC
       scopeNames: [], // Required: list of access scope strings
       blocked: false, // Required: sign-in block status
       // Optional fields:
+      fullName: firebaseUser.phoneNumber,
       userName: firebaseUser.displayName,
       email: firebaseUser.email,
       imageUrl: firebaseUser.photoUrl,
@@ -26,35 +40,32 @@ class PhoneAuthEndpoint extends Endpoint {
       newUserInfo.userIdentifier,
     );
     userInfo ??= await Users.createUser(session, newUserInfo);
-
-    // 3. Issue Serverpod Auth Key
-    return _authenticateUser(session, userInfo!);
+    return _authenticateUser(session, userInfo!, userUuid);
   }
 
-  Future<AuthenticationResponse> _authenticateUser(
+  Future<AuthSuccess?> _authenticateUser(
     Session session,
     UserInfo userInfo,
+    UuidValue userUuid,
   ) async {
     // Ensure the user has a valid DB ID
     if (userInfo.id == null) {
-      return AuthenticationResponse(
-        success: false,
-        failReason: AuthenticationFailReason.invalidCredentials,
-      );
+      return null;
     }
 
-    // ✅ Correct way to issue a Serverpod Auth Key:
     final authKey = await UserAuthentication.signInUser(
       session,
       userInfo.id!,
       'phone', // Auth method / provider name
+      scopes: {},
     );
 
-    return AuthenticationResponse(
-      success: true,
-      keyId: authKey.id,
-      key: authKey.key,
-      userInfo: userInfo,
+    return AuthSuccess(
+      authStrategy: 'jwt',
+      token: authKey.key!,
+      tokenExpiresAt: DateTime.now().add(const Duration(days: 30)),
+      authUserId: userUuid,
+      scopeNames: {},
     );
   }
 }
