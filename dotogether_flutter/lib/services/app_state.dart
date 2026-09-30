@@ -189,9 +189,9 @@ class AppState extends ChangeNotifier {
         title: 'tasks for you',
         description: 'Assigned to you by Hank. Please review and complete.',
         creatorUid: 'hank_uid',
-        creatorPhone: '+(simulated)12309344',
+        creatorPhone: '+(simulated)12309346',
         assigneePhone: '+(simulated)12309344',
-        assigneeName: 'Hank M. Zakroff',
+        assigneeName: 'myself',
         status: 'pending',
         createdAt: DateTime.now().subtract(const Duration(hours: 4)),
         todos: [
@@ -205,9 +205,9 @@ class AppState extends ChangeNotifier {
         title: 'shopping list',
         description: 'Groceries for the weekend dinner.',
         creatorUid: 'john_uid',
-        creatorPhone: '+(simulated)15556106',
+        creatorPhone: '+(simulated)15556108',
         assigneePhone: '+(simulated)12309344',
-        assigneeName: 'John Appleseed',
+        assigneeName: 'myself',
         status: 'pending',
         createdAt: DateTime.now().subtract(const Duration(days: 1)),
         todos: [
@@ -240,7 +240,7 @@ class AppState extends ChangeNotifier {
         creatorUid: 'me_uid',
         creatorPhone: '+(simulated)12309344',
         assigneePhone: '+(simulated)15556106',
-        assigneeName: 'David Taylor',
+        assigneeName: 'Michael Appleseed',
         status: 'in_progress',
         createdAt: DateTime.now().subtract(const Duration(hours: 2)),
         todos: [
@@ -361,7 +361,7 @@ class AppState extends ChangeNotifier {
     if (client.auth.isAuthenticated) {
       debugPrint('User is authenticated with Serverpod.');
     }
-    
+
     var profile = await client.user.getProfile();
     debugPrint('Fetched user profile: $profile');
 
@@ -445,7 +445,7 @@ class AppState extends ChangeNotifier {
     _contacts = [
       Contact(
         displayName: 'Hank M. Zakroff',
-        phones: [Phone(number: '+(simulated)12309344')],
+        phones: [Phone(number: '+(simulated)12309346')],
       ),
       Contact(
         displayName: 'Michael Appleseed',
@@ -457,7 +457,7 @@ class AppState extends ChangeNotifier {
       ),
       Contact(
         displayName: 'David Taylor',
-        phones: [Phone(number: '+(simulated)15556106')],
+        phones: [Phone(number: '+(simulated)15556108')],
       ),
       // Contacts not used in any initial task, available to create new tasks:
       Contact(

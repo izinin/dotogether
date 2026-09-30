@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'screens/home_screen.dart';
 import 'services/app_state.dart';
 import 'screens/welcome_screen.dart';
+import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import 'client.dart';
 
@@ -107,7 +109,7 @@ class DoTogetherApp extends StatelessWidget {
       theme: _buildTheme(Brightness.light),
       darkTheme: _buildTheme(Brightness.dark),
       themeMode: ThemeMode.system,
-      home: const WelcomeScreen(),
+      home: (client.auth.isAuthenticated) ? const HomeScreen() : const WelcomeScreen(),
       onGenerateRoute: (settings) {
         // Intercept Firebase reCAPTCHA deep links and prevent Flutter Navigator errors
         if (settings.name != null && settings.name!.startsWith('/link')) {

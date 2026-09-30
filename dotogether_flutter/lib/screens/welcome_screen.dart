@@ -15,25 +15,6 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkInitialAuth();
-    });
-  }
-
-  Future<void> _checkInitialAuth() async {
-    if (!mounted) return;
-    if (client.auth.isAuthenticated) {
-      final appState = Provider.of<AppState>(context, listen: false);
-      await appState.ensureUserInDatabase();
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
-    }
-  }
 
   void _handleTutorial() {
     debugPrint('Starting tutorial in demo mode.');
@@ -47,17 +28,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-
-    // If authenticated and finished loading, navigate to HomeScreen
-    if (client.auth.isAuthenticated && !appState.isLoading) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
-      });
-    }
-
     final ButtonStyle authButtonStyle = OutlinedButton.styleFrom(
       foregroundColor: Colors.black87, // Dark text/icon color
       backgroundColor: Colors.white, // White background
