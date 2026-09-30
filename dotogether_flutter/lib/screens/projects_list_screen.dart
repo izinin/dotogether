@@ -28,9 +28,9 @@ class ProjectsListScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
-          'Projects',
-          style: TextStyle(
+        title: Text(
+          isReceivedMode ? 'My tasks' : 'My projects',
+          style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 22,
@@ -94,14 +94,10 @@ class ProjectsListScreen extends StatelessWidget {
       iconColor = const Color(0xFFE53935); // Solid Red
     }
 
-    // Determine whose name to show
-    // Creator mode: Show assignee's name (Hank M. Zakroff, Anna Haro, etc.)
-    // Assignee mode: Show creator's phone/name
-    String nameLabel = isReceivedMode
-        ? (project.creatorPhone == '+(simulated)12309344'
-              ? 'Hank M. Zakroff'
-              : project.creatorPhone)
-        : project.displayName;
+    // List item title displays Project.displayName
+    String nameLabel = project.displayName.isNotEmpty
+        ? project.displayName
+        : (isReceivedMode ? project.creatorPhone : project.assigneePhone);
 
     return InkWell(
       onTap: () {

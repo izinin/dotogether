@@ -191,7 +191,7 @@ class AppState extends ChangeNotifier {
         creatorUid: 'hank_uid',
         creatorPhone: '+(simulated)12309346',
         assigneePhone: '+(simulated)12309344',
-        displayName: 'myself',
+        displayName: 'Hank M. Zakroff',
         status: 'pending',
         createdAt: DateTime.now().subtract(const Duration(hours: 4)),
         todos: [
@@ -207,7 +207,7 @@ class AppState extends ChangeNotifier {
         creatorUid: 'john_uid',
         creatorPhone: '+(simulated)15556108',
         assigneePhone: '+(simulated)12309344',
-        displayName: 'myself',
+        displayName: 'David Taylor',
         status: 'pending',
         createdAt: DateTime.now().subtract(const Duration(days: 1)),
         todos: [

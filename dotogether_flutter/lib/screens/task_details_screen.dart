@@ -67,6 +67,7 @@ class TaskDetailsScreen extends StatelessWidget {
                           isReadOnly
                               ? Icons.assignment_ind_outlined
                               : Icons.assignment_outlined,
+                          size: 24,
                           color: const Color(0xFF2196F3),
                         ),
                         const SizedBox(width: 12),
@@ -85,6 +86,30 @@ class TaskDetailsScreen extends StatelessWidget {
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(width: 36),
+                        const Text(
+                          'Description:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            latestProject.description,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
                           ),
                         ),
                       ],
