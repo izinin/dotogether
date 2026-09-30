@@ -25,7 +25,7 @@ class Project {
   String creatorUid;
   String creatorPhone;
   String assigneePhone;
-  String assigneeName;
+  String displayName;
   String status; // 'pending' | 'in_progress' | 'completed'
   DateTime createdAt;
   List<TodoItem> todos;
@@ -37,7 +37,7 @@ class Project {
     required this.creatorUid,
     required this.creatorPhone,
     required this.assigneePhone,
-    required this.assigneeName,
+    required this.displayName,
     required this.status,
     required this.createdAt,
     required this.todos,
@@ -58,7 +58,7 @@ class Project {
       'creatorUid': creatorUid,
       'creatorPhone': creatorPhone,
       'assigneePhone': assigneePhone,
-      'assigneeName': assigneeName,
+      'displayName': displayName,
       'status': status,
       'createdAt': createdAt.toIso8601String(),
       'todos': todos.map((e) => e.toMap()).toList(),
@@ -88,7 +88,7 @@ class Project {
       creatorUid: map['creatorUid'] ?? '',
       creatorPhone: map['creatorPhone'] ?? '',
       assigneePhone: map['assigneePhone'] ?? '',
-      assigneeName: map['assigneeName'] ?? '',
+      displayName: map['displayName'] ?? '',
       status: map['status'] ?? 'pending',
       createdAt: parsedDate,
       todos: parsedTodos,

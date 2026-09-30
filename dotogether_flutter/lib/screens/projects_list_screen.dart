@@ -101,7 +101,7 @@ class ProjectsListScreen extends StatelessWidget {
         ? (project.creatorPhone == '+(simulated)12309344'
               ? 'Hank M. Zakroff'
               : project.creatorPhone)
-        : project.assigneeName;
+        : project.displayName;
 
     return InkWell(
       onTap: () {

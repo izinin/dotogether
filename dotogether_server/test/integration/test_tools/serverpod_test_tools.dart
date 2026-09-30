@@ -774,7 +774,7 @@ class _ProjectEndpoint {
     _ist.TestSessionBuilder sessionBuilder, {
     required String title,
     required String description,
-    required String assigneeName,
+    required String displayName,
     required String assigneePhone,
     required List<String> checklistTitles,
   }) async {
@@ -792,7 +792,7 @@ class _ProjectEndpoint {
           parameters: _ist.testObjectToJson({
             'title': title,
             'description': description,
-            'assigneeName': assigneeName,
+            'displayName': displayName,
             'assigneePhone': assigneePhone,
             'checklistTitles': checklistTitles,
           }),

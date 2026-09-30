@@ -12,7 +12,7 @@ class ProjectEndpoint extends Endpoint {
     Session session, {
     required String title,
     required String description,
-    required String assigneeName,
+    required String displayName,
     required String assigneePhone,
     required List<String> checklistTitles,
   }) async {
@@ -44,7 +44,7 @@ class ProjectEndpoint extends Endpoint {
         ownerPhone: userProfile?.phoneNumber,
         executorId: assigneeProfile?.authUserId,
         assigneePhone: cleanAssigneePhone,
-        assigneeName: assigneeName.trim(),
+        displayName: displayName.trim(),
         overallStatus: 'pending',
         createdAt: DateTime.now(),
       ),

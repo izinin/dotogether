@@ -72,7 +72,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
     Map<String, String> smsData = await appState.createProject(
       title: _titleController.text,
       description: _descController.text,
-      assigneeName: widget.contactName,
+      displayName: widget.contactName,
       assigneeRawPhone: widget.contactPhone,
       taskTexts: taskTexts,
     );
