@@ -6,9 +6,10 @@ import 'package:serverpod_auth_server/serverpod_auth_server.dart';
 
 // Provides: AuthenticationResponse, UserInfo, userAuthentication, etc.
 class PhoneAuthEndpoint extends Endpoint {
-
-// Create a constant namespace UUID for your app's phone IDs
-  static final _phoneNamespace = UuidValue.fromString('6ba7b810-9dad-11d1-80b4-00c04fd430c8');
+  // Create a constant namespace UUID for your app's phone IDs
+  static final _phoneNamespace = UuidValue.fromString(
+    '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+  );
 
   /// Converts any phone number string deterministically into a valid UuidValue
   UuidValue _phoneToUuid(String phoneNumber) {
@@ -48,24 +49,27 @@ class PhoneAuthEndpoint extends Endpoint {
     UserInfo userInfo,
     UuidValue userUuid,
   ) async {
-    // Ensure the user has a valid DB ID
     if (userInfo.id == null) {
       return null;
     }
 
-    final authKey = await UserAuthentication.signInUser(
-      session,
-      userInfo.id!,
-      'phone', // Auth method / provider name
-      scopes: {},
-    );
+    var authUser = await AuthUser.db.findById(session, userUuid);
+    if (authUser == null) {
+      await AuthUser.db.insertRow(
+        session,
+        AuthUser(
+          id: userUuid,
+          scopeNames: {},
+          blocked: false,
+        ),
+      );
+    }
 
-    return AuthSuccess(
-      authStrategy: 'jwt',
-      token: authKey.key!,
-      tokenExpiresAt: DateTime.now().add(const Duration(days: 30)),
+    return await AuthServices.instance.tokenManager.issueToken(
+      session,
       authUserId: userUuid,
-      scopeNames: {},
+      method: 'phone',
+      scopes: {},
     );
   }
 }

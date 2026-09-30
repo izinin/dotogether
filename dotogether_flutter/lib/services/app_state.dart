@@ -346,6 +346,30 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  Future<void> mockSignIn(String phoneNumber) async {
+    final authSuccess = await client.phoneAuth.authenticateWithFirebasePhone(
+      backend.PhoneAuthPayload(
+        phoneNumber: phoneNumber,
+        displayName: _currentUser!.displayName ?? 'fake name',
+        email: _currentUser!.email ?? 'fake email',
+        photoUrl: _currentUser!.photoURL ?? 'fake photo',
+      ),
+    );
+
+    // https://docs.serverpod.dev/next/concepts/authentication/basics#register-authentication
+    await client.auth.updateSignedInUser(authSuccess);
+    if (client.auth.isAuthenticated) {
+      debugPrint('User is authenticated with Serverpod.');
+    }
+    
+    var profile = await client.user.getProfile();
+    debugPrint('Fetched user profile: $profile');
+
+    _isLoading = false;
+    _registrationStep = 1;
+    notifyListeners();
+  }
+
   Future<void> _onAuthSuccess() async {
     _currentUser = FirebaseAuth.instance.currentUser;
     _currentPhoneNumber = _currentUser?.phoneNumber;
