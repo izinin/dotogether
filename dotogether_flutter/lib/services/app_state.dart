@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:dotogether_client/dotogether_client.dart' hide Contact;
 import 'package:dotogether_client/dotogether_client.dart' as backend;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:recaptcha_enterprise_flutter/recaptcha.dart';
 import 'package:recaptcha_enterprise_flutter/recaptcha_client.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../models/project.dart';
+import '../utils/project_extension.dart';
 import '../utils/phone_number_utility.dart';
 import '../client.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
@@ -185,67 +186,131 @@ class AppState extends ChangeNotifier {
 
     _mockProjects.addAll([
       Project(
-        id: 'p1',
+        id: 1,
         title: 'tasks for you',
         description: 'Assigned to you by Hank. Please review and complete.',
-        creatorUid: 'hank_uid',
-        creatorPhone: '+(simulated)12309346',
+        ownerId: UuidValue.fromString('6ba7b810-9dad-11d1-80b4-00c04fd430c6'),
+        ownerPhone: '+(simulated)12309346',
         assigneePhone: '+(simulated)12309344',
-        assigneeName: 'Hank M. Zakroff',
-        status: 'pending',
+        ownerName: 'Hank M. Zakroff',
+        assigneeName: 'myself',
+        overallStatus: 'pending',
         createdAt: DateTime.now().subtract(const Duration(hours: 4)),
-        todos: [
-          TodoItem(text: 'Review project requirements', isCompleted: false),
-          TodoItem(text: 'Design splash screen layout', isCompleted: false),
-          TodoItem(text: 'Coordinate with database admin', isCompleted: false),
+        checklistItems: [
+          ChecklistItem(
+            id: 1,
+            projectId: 1,
+            title: 'Review project requirements',
+            isCompleted: false,
+          ),
+          ChecklistItem(
+            id: 2,
+            projectId: 1,
+            title: 'Design splash screen layout',
+            isCompleted: false,
+          ),
+          ChecklistItem(
+            id: 3,
+            projectId: 1,
+            title: 'Coordinate with database admin',
+            isCompleted: false,
+          ),
         ],
       ),
       Project(
-        id: 'p2',
+        id: 2,
         title: 'shopping list',
         description: 'Groceries for the weekend dinner.',
-        creatorUid: 'john_uid',
-        creatorPhone: '+(simulated)15556108',
+        ownerId: UuidValue.fromString('6ba7b810-9dad-11d1-80b4-00c04fd430c7'),
+        ownerPhone: '+(simulated)15556108',
         assigneePhone: '+(simulated)12309344',
-        assigneeName: 'David Taylor',
-        status: 'pending',
+        ownerName: 'David Taylor',
+        assigneeName: 'myself',
+        overallStatus: 'pending',
         createdAt: DateTime.now().subtract(const Duration(days: 1)),
-        todos: [
-          TodoItem(text: 'Tomatoes & Basil', isCompleted: false),
-          TodoItem(text: 'Mozzarella cheese', isCompleted: false),
-          TodoItem(text: 'Olive oil (extra virgin)', isCompleted: false),
-          TodoItem(text: 'Pasta/Spaghetti', isCompleted: false),
+        checklistItems: [
+          ChecklistItem(
+            id: 4,
+            projectId: 2,
+            title: 'Tomatoes & Basil',
+            isCompleted: false,
+          ),
+          ChecklistItem(
+            id: 5,
+            projectId: 2,
+            title: 'Mozzarella cheese',
+            isCompleted: false,
+          ),
+          ChecklistItem(
+            id: 6,
+            projectId: 2,
+            title: 'Olive oil (extra virgin)',
+            isCompleted: false,
+          ),
+          ChecklistItem(
+            id: 7,
+            projectId: 2,
+            title: 'Pasta/Spaghetti',
+            isCompleted: false,
+          ),
         ],
       ),
       Project(
-        id: 'p3',
+        id: 3,
         title: 'project "my company logo"',
         description: 'Design mockups and details.',
-        creatorUid: 'me_uid',
-        creatorPhone: '+(simulated)12309344',
+        ownerId: UuidValue.fromString('6ba7b810-9dad-11d1-80b4-00c04fd430c8'),
+        ownerPhone: '+(simulated)12309344',
         assigneePhone: '+(simulated)15555228',
+        ownerName: 'myself',
         assigneeName: 'Anna Haro',
-        status: 'completed',
+        overallStatus: 'completed',
         createdAt: DateTime.now().subtract(const Duration(days: 3)),
-        todos: [
-          TodoItem(text: 'Research reference brand assets', isCompleted: true),
-          TodoItem(text: 'Draw 3 vector variations', isCompleted: true),
-          TodoItem(text: 'Select typography settings', isCompleted: true),
+        checklistItems: [
+          ChecklistItem(
+            id: 8,
+            projectId: 3,
+            title: 'Research reference brand assets',
+            isCompleted: true,
+          ),
+          ChecklistItem(
+            id: 9,
+            projectId: 3,
+            title: 'Draw 3 vector variations',
+            isCompleted: true,
+          ),
+          ChecklistItem(
+            id: 10,
+            projectId: 3,
+            title: 'Select typography settings',
+            isCompleted: true,
+          ),
         ],
       ),
       Project(
-        id: 'p4',
+        id: 4,
         title: 'your task for today',
         description: 'Urgent maintenance checks.',
-        creatorUid: 'me_uid',
-        creatorPhone: '+(simulated)12309344',
+        ownerId: UuidValue.fromString('6ba7b810-9dad-11d1-80b4-00c04fd430c8'),
+        ownerPhone: '+(simulated)12309344',
         assigneePhone: '+(simulated)15556106',
+        ownerName: 'myself',
         assigneeName: 'Michael Appleseed',
-        status: 'in_progress',
+        overallStatus: 'in_progress',
         createdAt: DateTime.now().subtract(const Duration(hours: 2)),
-        todos: [
-          TodoItem(text: 'Check server performance', isCompleted: true),
-          TodoItem(text: 'Backup transaction logs', isCompleted: false),
+        checklistItems: [
+          ChecklistItem(
+            id: 11,
+            projectId: 4,
+            title: 'Check server performance',
+            isCompleted: true,
+          ),
+          ChecklistItem(
+            id: 12,
+            projectId: 4,
+            title: 'Backup transaction logs',
+            isCompleted: false,
+          ),
         ],
       ),
     ]);
@@ -255,7 +320,7 @@ class AppState extends ChangeNotifier {
 
   void _updateMockStream() {
     _createdProjects = _mockProjects
-        .where((p) => p.creatorPhone == _currentPhoneNumber)
+        .where((p) => p.ownerPhone == _currentPhoneNumber)
         .toList();
     _receivedProjects = _mockProjects
         .where((p) => p.assigneePhone == _currentPhoneNumber)
@@ -486,24 +551,43 @@ class AppState extends ChangeNotifier {
 
     String normalizedPhone = PhoneNumberUtility.normalize(assigneeRawPhone);
 
-    List<TodoItem> items = taskTexts
-        .where((t) => t.trim().isNotEmpty)
-        .map((t) => TodoItem(text: t.trim(), isCompleted: false))
-        .toList();
+    int projectId = DateTime.now().millisecondsSinceEpoch;
 
-    String projectId = 'demo_${DateTime.now().millisecondsSinceEpoch}';
+    List<ChecklistItem> items = [];
+    int sortIdx = 0;
+    for (var t in taskTexts) {
+      if (t.trim().isNotEmpty) {
+        items.add(
+          ChecklistItem(
+            id: DateTime.now().millisecondsSinceEpoch + sortIdx,
+            projectId: projectId,
+            title: t.trim(),
+            isCompleted: false,
+            sortOrder: sortIdx++,
+          ),
+        );
+      }
+    }
+
+    UuidValue ownerUuid;
+    try {
+      ownerUuid = UuidValue.fromString(_currentUserUid ?? '');
+    } catch (_) {
+      ownerUuid = UuidValue.fromString('6ba7b810-9dad-11d1-80b4-00c04fd430c8');
+    }
 
     Project newProject = Project(
       id: projectId,
       title: title.trim(),
       description: description.trim(),
-      creatorUid: _currentUserUid ?? 'me_uid',
-      creatorPhone: _currentPhoneNumber ?? '+(simulated)12309344',
+      ownerId: ownerUuid,
+      ownerPhone: _currentPhoneNumber ?? '+(simulated)12309344',
       assigneePhone: normalizedPhone,
+      ownerName: 'myself',
       assigneeName: assigneeName,
-      status: 'pending',
+      overallStatus: 'pending',
       createdAt: DateTime.now(),
-      todos: items,
+      checklistItems: items,
     );
 
     // Save project in mock local state
@@ -514,7 +598,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
 
     // Prepare SMS body containing tasks summary and Play Store link
-    String tasksSummary = items.map((e) => "- [ ] ${e.text}").join("\n");
+    String tasksSummary = items.map((e) => "- [ ] ${e.title}").join("\n");
     String smsMessage =
         "Hello $assigneeName!\n"
         "I have created a taskList '$title' for you:\n"
@@ -532,7 +616,13 @@ class AppState extends ChangeNotifier {
     int itemIndex,
     bool isCompleted,
   ) async {
-    project.todos[itemIndex].isCompleted = isCompleted;
+    final items = project.checklistItems;
+    if (items != null && itemIndex < items.length) {
+      items[itemIndex].isCompleted = isCompleted;
+      if (isCompleted) {
+        items[itemIndex].completedAt = DateTime.now();
+      }
+    }
 
     // Recalculate status
     double completion = project.completionPercentage;
@@ -543,7 +633,7 @@ class AppState extends ChangeNotifier {
       newStatus = 'in_progress';
     }
 
-    project.status = newStatus;
+    project.overallStatus = newStatus;
 
     int idx = _mockProjects.indexWhere((p) => p.id == project.id);
     if (idx != -1) {

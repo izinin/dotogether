@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:dotogether_client/dotogether_client.dart';
 import '../services/app_state.dart';
-import '../models/project.dart';
+import '../utils/project_extension.dart';
 
 class TaskDetailsScreen extends StatelessWidget {
   final Project project;
@@ -21,10 +22,11 @@ class TaskDetailsScreen extends StatelessWidget {
     // Find the latest state of this project in the app state to ensure real-time changes are shown
     final latestProject = _findLatestProject(appState) ?? project;
     final double completion = latestProject.completionPercentage;
-    final int completedCount = latestProject.todos
+    final checklistItems = latestProject.checklistItems ?? [];
+    final int completedCount = checklistItems
         .where((t) => t.isCompleted)
         .length;
-    final int totalCount = latestProject.todos.length;
+    final int totalCount = checklistItems.length;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -165,15 +167,15 @@ class TaskDetailsScreen extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: _getStatusBgColor(latestProject.status),
+                            color: _getStatusBgColor(latestProject.overallStatus),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            latestProject.status
+                            latestProject.overallStatus
                                 .replaceAll('_', ' ')
                                 .toUpperCase(),
                             style: TextStyle(
-                              color: _getStatusTextColor(latestProject.status),
+                              color: _getStatusTextColor(latestProject.overallStatus),
                               fontWeight: FontWeight.bold,
                               fontSize: 11,
                             ),
@@ -203,9 +205,9 @@ class TaskDetailsScreen extends StatelessWidget {
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: latestProject.todos.length,
+                itemCount: checklistItems.length,
                 itemBuilder: (context, index) {
-                  final item = latestProject.todos[index];
+                  final item = checklistItems[index];
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: InkWell(
@@ -252,7 +254,7 @@ class TaskDetailsScreen extends StatelessWidget {
                           // Label text with strike-through if completed
                           Expanded(
                             child: Text(
-                              item.text,
+                              item.title,
                               style: TextStyle(
                                 fontSize: 16,
                                 color: item.isCompleted

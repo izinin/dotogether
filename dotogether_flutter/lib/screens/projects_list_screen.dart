@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/app_state.dart';
-import '../models/project.dart';
+import 'package:dotogether_client/dotogether_client.dart';
 import 'task_details_screen.dart';
 
 class ProjectsListScreen extends StatelessWidget {
@@ -81,10 +81,10 @@ class ProjectsListScreen extends StatelessWidget {
     IconData statusIcon = Icons.calendar_today_outlined;
     Color iconColor = Colors.red;
 
-    if (project.status == 'completed') {
+    if (project.overallStatus == 'completed') {
       statusIcon = Icons.check_circle;
       iconColor = const Color(0xFF4CAF50); // Premium Green
-    } else if (project.status == 'in_progress') {
+    } else if (project.overallStatus == 'in_progress') {
       statusIcon =
           Icons.history; // Matches clock/time logo from David Taylor item
       iconColor = const Color(0xFF2196F3); // Premium Blue
@@ -97,7 +97,7 @@ class ProjectsListScreen extends StatelessWidget {
     // List item title displays Project.assigneeName
     String nameLabel = project.assigneeName.isNotEmpty
         ? project.assigneeName
-        : (isReceivedMode ? project.creatorPhone : project.assigneePhone);
+        : (isReceivedMode ? (project.ownerPhone ?? '') : project.assigneePhone);
 
     return InkWell(
       onTap: () {
