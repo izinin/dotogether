@@ -13,10 +13,12 @@ class AuthWithSmsScreen extends StatefulWidget {
 
 class _AuthWithSmsScreenState extends State<AuthWithSmsScreen> {
   final TextEditingController _phoneController = TextEditingController(
-    text: "+358442023855",
+    text: "+358442096093",
+    // text: "+358442023855",
   ); // Pre-filled from screenshot
   final TextEditingController _codeController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  String? _submittedPhone;
 
   @override
   void dispose() {
@@ -74,7 +76,7 @@ class _AuthWithSmsScreenState extends State<AuthWithSmsScreen> {
                 _buildStepperRow(
                   stepNumber: 1,
                   title: 'Your phone number',
-                  subtitle: 'Phone number with country code (+xxxx)',
+                  subtitle: (_submittedPhone != null) ? 'you entered: $_submittedPhone' : 'Phone number with country code (+xxxx)',
                   isActive: activeStep >= 1,
                   isCompleted: activeStep > 1,
                   child: activeStep == 1
@@ -136,6 +138,10 @@ class _AuthWithSmsScreenState extends State<AuthWithSmsScreen> {
                                 onPressed: appState.isLoading
                                     ? null
                                     : () {
+                                        setState(() {
+                                          _submittedPhone =
+                                              _phoneController.text;
+                                        });
                                         if (_formKey.currentState!.validate()) {
                                           // appState.mockSignIn(
                                           appState.sendSmsCode(

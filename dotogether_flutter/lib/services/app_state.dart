@@ -431,7 +431,7 @@ class AppState extends ChangeNotifier {
     debugPrint('Fetched user profile: $profile');
 
     _isLoading = false;
-    _registrationStep = 1;
+    _registrationStep = 2;
     notifyListeners();
   }
 
