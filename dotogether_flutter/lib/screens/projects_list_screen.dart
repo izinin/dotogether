@@ -19,6 +19,8 @@ class ProjectsListScreen extends StatelessWidget {
         ? appState.receivedProjects
         : appState.createdProjects;
 
+    final pageTitle = isReceivedMode ? 'My tasks' : 'My projects';
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -29,7 +31,7 @@ class ProjectsListScreen extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          isReceivedMode ? 'My tasks' : 'My projects',
+          pageTitle,
           style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -66,13 +68,13 @@ class ProjectsListScreen extends StatelessWidget {
               itemCount: projects.length,
               itemBuilder: (context, index) {
                 final project = projects[index];
-                return _buildProjectTile(context, project);
+                return _buildProjectTile(pageTitle, context, project, isReceivedMode);
               },
             ),
     );
   }
 
-  Widget _buildProjectTile(BuildContext context, Project project) {
+  Widget _buildProjectTile(String pageTitle, BuildContext context, Project project, bool isReceivedMode) {
     // Determine the status icon and coloring based on project status
     // Matches screenshot 1 exactly:
     // - Red calendar icon for completely pending (0% done)
@@ -94,20 +96,15 @@ class ProjectsListScreen extends StatelessWidget {
       iconColor = const Color(0xFFE53935); // Solid Red
     }
 
-    // List item title displays Project.assigneeName
-    String nameLabel = project.assigneeName.isNotEmpty
-        ? project.assigneeName
-        : (isReceivedMode ? (project.ownerPhone ?? '') : project.assigneePhone);
-
     return InkWell(
       onTap: () {
         // Navigate to the checklist details page
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => TaskDetailsScreen(
+              title: pageTitle,
               project: project,
-              isReadOnly:
-                  !isReceivedMode, // Assignees can check boxes, creators read progress
+              isReadOnly: !isReceivedMode, // Assignees can check boxes, creators read progress
             ),
           ),
         );
@@ -129,7 +126,7 @@ class ProjectsListScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    nameLabel,
+                    project.assigneeName,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,

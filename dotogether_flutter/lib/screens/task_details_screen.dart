@@ -6,23 +6,22 @@ import '../utils/project_extension.dart';
 
 class TaskDetailsScreen extends StatelessWidget {
   final Project project;
-  final bool
-  isReadOnly; // true for creator (read-only), false for assignee (can tick checkmarks)
+  final bool isReadOnly; // true for creator (read-only), false for assignee (can tick checkmarks)
+  final String title;
 
   const TaskDetailsScreen({
     super.key,
     required this.project,
     required this.isReadOnly,
+    required this.title,
   });
 
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
 
-    // Find the latest state of this project in the app state to ensure real-time changes are shown
-    final latestProject = _findLatestProject(appState) ?? project;
-    final double completion = latestProject.completionPercentage;
-    final checklistItems = latestProject.checklistItems ?? [];
+    final double completion = project.completionPercentage;
+    final checklistItems = project.checklistItems ?? [];
     final int completedCount = checklistItems
         .where((t) => t.isCompleted)
         .length;
@@ -38,7 +37,7 @@ class TaskDetailsScreen extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          latestProject.title,
+          '$title > ${project.title}',
           style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -83,7 +82,7 @@ class TaskDetailsScreen extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           isReadOnly
-                              ? latestProject.assigneeName
+                              ? project.assigneeName
                               : 'Hank M. Zakroff',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
@@ -107,7 +106,7 @@ class TaskDetailsScreen extends StatelessWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            latestProject.description,
+                            project.description,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.black87,
@@ -167,15 +166,15 @@ class TaskDetailsScreen extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: _getStatusBgColor(latestProject.overallStatus),
+                            color: _getStatusBgColor(project.overallStatus),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            latestProject.overallStatus
+                            project.overallStatus
                                 .replaceAll('_', ' ')
                                 .toUpperCase(),
                             style: TextStyle(
-                              color: _getStatusTextColor(latestProject.overallStatus),
+                              color: _getStatusTextColor(project.overallStatus),
                               fontWeight: FontWeight.bold,
                               fontSize: 11,
                             ),
@@ -215,7 +214,7 @@ class TaskDetailsScreen extends StatelessWidget {
                           ? null // Locked in creator view
                           : () {
                               appState.toggleTask(
-                                latestProject,
+                                project,
                                 index,
                                 !item.isCompleted,
                               );
@@ -242,7 +241,7 @@ class TaskDetailsScreen extends StatelessWidget {
                                     onChanged: (val) {
                                       if (val != null) {
                                         appState.toggleTask(
-                                          latestProject,
+                                          project,
                                           index,
                                           val,
                                         );
@@ -304,18 +303,6 @@ class TaskDetailsScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Project? _findLatestProject(AppState appState) {
-    // Looks up project by ID in local streams to reflect real-time changes instantly
-    try {
-      final list = isReadOnly
-          ? appState.createdProjects
-          : appState.receivedProjects;
-      return list.firstWhere((p) => p.id == project.id);
-    } catch (_) {
-      return null;
-    }
   }
 
   Color _getStatusBgColor(String status) {
