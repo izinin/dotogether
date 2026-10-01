@@ -47,7 +47,7 @@ serverpod:
   #
   # Admin:
   #   path: ../apps/admin_flutter
-  #   displayName: "Admin app"
+  #   assigneeName: "Admin app"
   #   auto_launch: true
   #   device: chrome
   #   target: lib/main.dart
@@ -61,6 +61,6 @@ serverpod:
   flutter_apps:
     dotogether:
       path: ../dotogether_flutter
-      displayName: "Dotogether app"
+      assigneeName: "Dotogether app"
       auto_launch: true
       target: lib/driver.dart

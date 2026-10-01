@@ -16,7 +16,7 @@ CREATE TABLE "project" (
     "ownerPhone" text,
     "executorId" uuid,
     "assigneePhone" text NOT NULL,
-    "displayName" text NOT NULL,
+    "assigneeName" text NOT NULL,
     "overallStatus" text NOT NULL DEFAULT 'pending'::text,
     "createdAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

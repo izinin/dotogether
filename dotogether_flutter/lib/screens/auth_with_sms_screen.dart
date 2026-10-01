@@ -137,8 +137,8 @@ class _AuthWithSmsScreenState extends State<AuthWithSmsScreen> {
                                     ? null
                                     : () {
                                         if (_formKey.currentState!.validate()) {
-                                          appState.mockSignIn(
-                                          // appState.sendSmsCode(
+                                          // appState.mockSignIn(
+                                          appState.sendSmsCode(
                                             _phoneController.text,
                                           );
                                         }

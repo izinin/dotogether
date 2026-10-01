@@ -1,4 +1,3 @@
-import 'package:dotogether_flutter/client.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

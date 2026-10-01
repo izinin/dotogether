@@ -1,8 +1,6 @@
-import 'package:dotogether_flutter/client.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 import '../services/app_state.dart';
 import 'auth_with_sms_screen.dart';
 import 'home_screen.dart';

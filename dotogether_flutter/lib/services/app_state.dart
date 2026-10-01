@@ -191,7 +191,7 @@ class AppState extends ChangeNotifier {
         creatorUid: 'hank_uid',
         creatorPhone: '+(simulated)12309346',
         assigneePhone: '+(simulated)12309344',
-        displayName: 'Hank M. Zakroff',
+        assigneeName: 'Hank M. Zakroff',
         status: 'pending',
         createdAt: DateTime.now().subtract(const Duration(hours: 4)),
         todos: [
@@ -207,7 +207,7 @@ class AppState extends ChangeNotifier {
         creatorUid: 'john_uid',
         creatorPhone: '+(simulated)15556108',
         assigneePhone: '+(simulated)12309344',
-        displayName: 'David Taylor',
+        assigneeName: 'David Taylor',
         status: 'pending',
         createdAt: DateTime.now().subtract(const Duration(days: 1)),
         todos: [
@@ -224,7 +224,7 @@ class AppState extends ChangeNotifier {
         creatorUid: 'me_uid',
         creatorPhone: '+(simulated)12309344',
         assigneePhone: '+(simulated)15555228',
-        displayName: 'Anna Haro',
+        assigneeName: 'Anna Haro',
         status: 'completed',
         createdAt: DateTime.now().subtract(const Duration(days: 3)),
         todos: [
@@ -240,7 +240,7 @@ class AppState extends ChangeNotifier {
         creatorUid: 'me_uid',
         creatorPhone: '+(simulated)12309344',
         assigneePhone: '+(simulated)15556106',
-        displayName: 'Michael Appleseed',
+        assigneeName: 'Michael Appleseed',
         status: 'in_progress',
         createdAt: DateTime.now().subtract(const Duration(hours: 2)),
         todos: [
@@ -477,7 +477,7 @@ class AppState extends ChangeNotifier {
   Future<Map<String, String>> createProject({
     required String title,
     required String description,
-    required String displayName,
+    required String assigneeName,
     required String assigneeRawPhone,
     required List<String> taskTexts,
   }) async {
@@ -500,7 +500,7 @@ class AppState extends ChangeNotifier {
       creatorUid: _currentUserUid ?? 'me_uid',
       creatorPhone: _currentPhoneNumber ?? '+(simulated)12309344',
       assigneePhone: normalizedPhone,
-      displayName: displayName,
+      assigneeName: assigneeName,
       status: 'pending',
       createdAt: DateTime.now(),
       todos: items,
@@ -516,7 +516,7 @@ class AppState extends ChangeNotifier {
     // Prepare SMS body containing tasks summary and Play Store link
     String tasksSummary = items.map((e) => "- [ ] ${e.text}").join("\n");
     String smsMessage =
-        "Hello $displayName!\n"
+        "Hello $assigneeName!\n"
         "I have created a taskList '$title' for you:\n"
         "$tasksSummary\n\n"
         "${description.isNotEmpty ? 'Details: $description\n' : ''}"

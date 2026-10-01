@@ -23,8 +23,21 @@ class UserEndpoint extends Endpoint {
   Future<AppUserData> updateProfile(
     Session session, {
     String? phoneNumber,
+    String? displayName,
     String? deviceToken,
   }) async {
+    phoneNumber = phoneNumber?.trim();
+    displayName = displayName?.trim();
+    deviceToken = deviceToken?.trim();
+
+    if (phoneNumber == null || phoneNumber.isEmpty) {
+      throw StateError('Phone number is required');
+    }
+
+    if (displayName == null || displayName.isEmpty) {
+      throw StateError('Display name is required');
+    }
+
     final authUserId = session.authenticated?.authUserId;
     if (authUserId == null) {
       throw StateError('User is not authenticated');
@@ -42,6 +55,7 @@ class UserEndpoint extends Endpoint {
         AppUserData(
           authUserId: authUserId,
           phoneNumber: phoneNumber,
+          displayName: displayName,
           deviceToken: deviceToken,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
@@ -51,43 +65,40 @@ class UserEndpoint extends Endpoint {
       result = await AppUserData.db.updateRow(
         session,
         existing.copyWith(
-          phoneNumber: phoneNumber ?? existing.phoneNumber,
-          deviceToken: deviceToken ?? existing.deviceToken,
+          displayName: displayName,
+          deviceToken: deviceToken,
           updatedAt: DateTime.now(),
         ),
       );
     }
 
-    // If phone number is set, link any pending projects assigned to this phone number
-    if (phoneNumber != null && phoneNumber.trim().isNotEmpty) {
-      final normalizedPhone = phoneNumber.trim();
-      final projectsToLink = await Project.db.find(
-        session,
-        where: (t) =>
-            t.assigneePhone.equals(normalizedPhone) & t.executorId.equals(null),
-      );
+    // Link any pending projects assigned to this phone number to the current user as executorId
+    final projectsToLink = await Project.db.find(
+      session,
+      where: (t) =>
+          t.assigneePhone.equals(phoneNumber) & t.executorId.equals(null),
+    );
 
-      for (var project in projectsToLink) {
-        await Project.db.updateRow(
-          session,
-          project.copyWith(executorId: authUserId),
-        );
-      }
-
-      // Also mark matching contacts as registered
-      final contactsToUpdate = await Contact.db.find(
+    for (var project in projectsToLink) {
+      await Project.db.updateRow(
         session,
-        where: (t) => t.phoneNumber.equals(normalizedPhone),
+        project.copyWith(executorId: authUserId),
       );
-      for (var contact in contactsToUpdate) {
-        await Contact.db.updateRow(
-          session,
-          contact.copyWith(
-            isRegistered: true,
-            registeredUserId: authUserId,
-          ),
-        );
-      }
+    }
+
+    // Also mark matching contacts as registered
+    final contactsToUpdate = await Contact.db.find(
+      session,
+      where: (t) => t.phoneNumber.equals(phoneNumber),
+    );
+    for (var contact in contactsToUpdate) {
+      await Contact.db.updateRow(
+        session,
+        contact.copyWith(
+          isRegistered: true,
+          registeredUserId: authUserId,
+        ),
+      );
     }
 
     return result;

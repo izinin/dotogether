@@ -94,9 +94,9 @@ class ProjectsListScreen extends StatelessWidget {
       iconColor = const Color(0xFFE53935); // Solid Red
     }
 
-    // List item title displays Project.displayName
-    String nameLabel = project.displayName.isNotEmpty
-        ? project.displayName
+    // List item title displays Project.assigneeName
+    String nameLabel = project.assigneeName.isNotEmpty
+        ? project.assigneeName
         : (isReceivedMode ? project.creatorPhone : project.assigneePhone);
 
     return InkWell(

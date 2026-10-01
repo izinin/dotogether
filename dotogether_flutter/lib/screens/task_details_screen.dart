@@ -81,7 +81,7 @@ class TaskDetailsScreen extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           isReadOnly
-                              ? latestProject.displayName
+                              ? latestProject.assigneeName
                               : 'Hank M. Zakroff',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,

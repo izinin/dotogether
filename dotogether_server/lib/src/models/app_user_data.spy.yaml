@@ -3,8 +3,8 @@ table: app_user_data
 fields:
   ### The AuthUser this extra profile info belongs to
   authUser: module:serverpod_auth_core:AuthUser?, relation(onDelete=Cascade)
-  ### Phone number for SMS and task identification
-  phoneNumber: String?
+  phoneNumber: String
+  displayName: String
   ### Device push notification token (FCM/APNS)
   deviceToken: String?
   ### Timestamp when this profile was created

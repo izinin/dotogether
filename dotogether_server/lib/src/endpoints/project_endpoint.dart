@@ -12,7 +12,7 @@ class ProjectEndpoint extends Endpoint {
     Session session, {
     required String title,
     required String description,
-    required String displayName,
+    required String assigneeName,
     required String assigneePhone,
     required List<String> checklistTitles,
   }) async {
@@ -34,6 +34,10 @@ class ProjectEndpoint extends Endpoint {
       where: (t) => t.phoneNumber.equals(cleanAssigneePhone),
     );
 
+    if (userProfile == null) {
+      throw StateError('User profile not found');
+    } 
+
     // Create project
     final project = await Project.db.insertRow(
       session,
@@ -41,10 +45,11 @@ class ProjectEndpoint extends Endpoint {
         title: title.trim(),
         description: description.trim(),
         ownerId: authUserId,
-        ownerPhone: userProfile?.phoneNumber,
+        ownerPhone: userProfile.phoneNumber,
+        ownerName: userProfile.displayName,
         executorId: assigneeProfile?.authUserId,
         assigneePhone: cleanAssigneePhone,
-        displayName: displayName.trim(),
+        assigneeName: assigneeName.trim(),
         overallStatus: 'pending',
         createdAt: DateTime.now(),
       ),

@@ -76,8 +76,8 @@
           },
           {
             "__className__": "serverpod.ColumnDefinition",
-            "name": "displayName",
-            "fieldName": "displayName",
+            "name": "assigneeName",
+            "fieldName": "assigneeName",
             "columnType": 0,
             "isNullable": false,
             "dartType": "String"
@@ -167,7 +167,7 @@
       "message": "One or more columns are added to table \"project\" which cannot be added in a table migration. The complete table will be deleted and recreated.",
       "table": "project",
       "columns": [
-        "displayName"
+        "assigneeName"
       ],
       "destrucive": true
     }

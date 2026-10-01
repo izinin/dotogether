@@ -392,8 +392,8 @@
         },
         {
           "__className__": "serverpod.ColumnDefinition",
-          "name": "displayName",
-          "fieldName": "displayName",
+          "name": "assigneeName",
+          "fieldName": "assigneeName",
           "columnType": 0,
           "isNullable": false,
           "dartType": "String"

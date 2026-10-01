@@ -774,7 +774,7 @@ class _ProjectEndpoint {
     _ist.TestSessionBuilder sessionBuilder, {
     required String title,
     required String description,
-    required String displayName,
+    required String assigneeName,
     required String assigneePhone,
     required List<String> checklistTitles,
   }) async {
@@ -792,7 +792,7 @@ class _ProjectEndpoint {
           parameters: _ist.testObjectToJson({
             'title': title,
             'description': description,
-            'displayName': displayName,
+            'assigneeName': assigneeName,
             'assigneePhone': assigneePhone,
             'checklistTitles': checklistTitles,
           }),
@@ -1016,6 +1016,7 @@ class _UserEndpoint {
   _ida.Future<_ir08hrjl.AppUserData> updateProfile(
     _ist.TestSessionBuilder sessionBuilder, {
     String? phoneNumber,
+    String? displayName,
     String? deviceToken,
   }) async {
     return _ist.callAwaitableFunctionAndHandleExceptions(() async {
@@ -1031,6 +1032,7 @@ class _UserEndpoint {
           methodName: 'updateProfile',
           parameters: _ist.testObjectToJson({
             'phoneNumber': phoneNumber,
+            'displayName': displayName,
             'deviceToken': deviceToken,
           }),
           serializationManager: _serializationManager,

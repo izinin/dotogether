@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/app_state.dart';
@@ -72,7 +71,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
     Map<String, String> smsData = await appState.createProject(
       title: _titleController.text,
       description: _descController.text,
-      displayName: widget.contactName,
+      assigneeName: widget.contactName,
       assigneeRawPhone: widget.contactPhone,
       taskTexts: taskTexts,
     );

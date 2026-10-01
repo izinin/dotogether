@@ -13,8 +13,10 @@ fields:
   executorId: UuidValue?
   ### Contact phone number of the assignee
   assigneePhone: String
-  ### Display name of the assignee or creator depending on context
-  displayName: String
+  ### Display name of the assignee
+  ownerName: String
+  ### Display name of the assignee
+  assigneeName: String
   ### Overall progress status: 'pending', 'in_progress', 'completed'
   overallStatus: String, default='pending'
   ### When the project was created
