@@ -68,13 +68,23 @@ class ProjectsListScreen extends StatelessWidget {
               itemCount: projects.length,
               itemBuilder: (context, index) {
                 final project = projects[index];
-                return _buildProjectTile(pageTitle, context, project, isReceivedMode);
+                return _buildProjectTile(
+                  pageTitle,
+                  context,
+                  project,
+                  isReceivedMode,
+                );
               },
             ),
     );
   }
 
-  Widget _buildProjectTile(String pageTitle, BuildContext context, Project project, bool isReceivedMode) {
+  Widget _buildProjectTile(
+    String pageTitle,
+    BuildContext context,
+    Project project,
+    bool isReceivedMode,
+  ) {
     // Determine the status icon and coloring based on project status
     // Matches screenshot 1 exactly:
     // - Red calendar icon for completely pending (0% done)
@@ -104,7 +114,8 @@ class ProjectsListScreen extends StatelessWidget {
             builder: (context) => TaskDetailsScreen(
               title: pageTitle,
               project: project,
-              isReadOnly: !isReceivedMode, // Assignees can check boxes, creators read progress
+              isReadOnly:
+                  !isReceivedMode, // Assignees can check boxes, creators read progress
             ),
           ),
         );
@@ -126,7 +137,7 @@ class ProjectsListScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    project.assigneeName,
+                    project.assignee?.name ?? '',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,

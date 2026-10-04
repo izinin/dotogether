@@ -6,7 +6,8 @@ import '../utils/project_extension.dart';
 
 class TaskDetailsScreen extends StatelessWidget {
   final Project project;
-  final bool isReadOnly; // true for creator (read-only), false for assignee (can tick checkmarks)
+  final bool
+  isReadOnly; // true for creator (read-only), false for assignee (can tick checkmarks)
   final String title;
 
   const TaskDetailsScreen({
@@ -82,7 +83,7 @@ class TaskDetailsScreen extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           isReadOnly
-                              ? project.assigneeName
+                              ? (project.assignee?.name ?? '')
                               : 'Hank M. Zakroff',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,

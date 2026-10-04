@@ -72,21 +72,9 @@ class UserEndpoint extends Endpoint {
       );
     }
 
-    // Link any pending projects assigned to this phone number to the current user as executorId
-    final projectsToLink = await Project.db.find(
-      session,
-      where: (t) =>
-          t.assigneePhone.equals(phoneNumber) & t.executorId.equals(null),
-    );
-
-    for (var project in projectsToLink) {
-      await Project.db.updateRow(
-        session,
-        project.copyWith(executorId: authUserId),
-      );
-    }
-
-    // Also mark matching contacts as registered
+    // Mark matching contacts as registered. Since Project references Contact
+    // records for its owner/assignee, this automatically links any pending
+    // projects assigned to this phone number to the current user.
     final contactsToUpdate = await Contact.db.find(
       session,
       where: (t) => t.phoneNumber.equals(phoneNumber),

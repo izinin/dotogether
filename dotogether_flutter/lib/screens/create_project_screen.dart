@@ -92,7 +92,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
             onPressed: () async {
               Navigator.of(dialogCtx).pop(); // Close dialog
 
-              if (!appState.isDemoMode) {
+              if (appState.isDemoMode) {
                 // Trigger SMS launcher
                 await appState.sendSMSInvitation(
                   smsData['recipient']!,

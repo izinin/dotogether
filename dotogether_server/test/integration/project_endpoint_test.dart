@@ -64,6 +64,7 @@ void main() {
         await endpoints.user.updateProfile(
           authedUser1,
           phoneNumber: '+15550001111',
+          displayName: 'User One',
         );
 
         final project = await endpoints.project.createProject(
@@ -114,6 +115,13 @@ void main() {
     test(
       'when user 2 registers phone then assigned projects are automatically linked',
       () async {
+        // Ensure user 1 has a profile set up
+        await endpoints.user.updateProfile(
+          authedUser1,
+          phoneNumber: '+15550001111',
+          displayName: 'User One',
+        );
+
         // User 1 creates project assigned to +15559998888
         await endpoints.project.createProject(
           authedUser1,
@@ -128,6 +136,7 @@ void main() {
         await endpoints.user.updateProfile(
           authedUser2,
           phoneNumber: '+15559998888',
+          displayName: 'User Two',
         );
 
         // User 2 should see this under received projects
@@ -136,7 +145,10 @@ void main() {
         );
         expect(received, hasLength(1));
         expect(received.first.title, 'Review PR');
-        expect(received.first.executorId, UuidValue.withValidation(user2Id));
+        expect(
+          received.first.assignee?.registeredUserId,
+          UuidValue.withValidation(user2Id),
+        );
       },
     );
 
@@ -145,6 +157,7 @@ void main() {
       await endpoints.user.updateProfile(
         authedUser2,
         phoneNumber: '+15553334444',
+        displayName: 'User Two',
       );
 
       final synced = await endpoints.contact.syncContacts(

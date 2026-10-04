@@ -6,8 +6,11 @@ class ProjectEndpoint extends Endpoint {
   @override
   bool get requireLogin => true;
 
-  /// Creates a new Project and its interactive checklist items.
-  /// If the assignee phone matches an existing registered user, executorId is set immediately.
+  /// Creates a new Project. Finds (or creates) the Contact records that
+  /// represent the owner (the creator's own entry in their address book)
+  /// and the assignee, then creates the Project referencing both.
+  /// If the assignee phone matches an existing registered user, the
+  /// assignee Contact is immediately marked as registered.
   Future<Project> createProject(
     Session session, {
     required String title,
@@ -21,35 +24,77 @@ class ProjectEndpoint extends Endpoint {
       throw StateError('User is not authenticated');
     }
 
-    // Get current user's profile to record ownerPhone
+    // Get current user's profile to build/find their own Contact record.
     final userProfile = await AppUserData.db.findFirstRow(
       session,
       where: (t) => t.authUserId.equals(authUserId),
     );
+    if (userProfile == null) {
+      throw StateError('User profile not found');
+    }
+    final ownerPhone = userProfile.phoneNumber;
 
     // Check if assignee is registered
     final cleanAssigneePhone = assigneePhone.trim();
+    final cleanAssigneeName = assigneeName.trim();
     final assigneeProfile = await AppUserData.db.findFirstRow(
       session,
       where: (t) => t.phoneNumber.equals(cleanAssigneePhone),
     );
 
-    if (userProfile == null) {
-      throw StateError('User profile not found');
-    } 
+    // Find or create the Contact record representing the project owner
+    // (the creator's own entry in their own address book).
+    var ownerContact = await Contact.db.findFirstRow(
+      session,
+      where: (t) =>
+          t.ownerId.equals(authUserId) & t.phoneNumber.equals(ownerPhone),
+    );
+    ownerContact ??= await Contact.db.insertRow(
+      session,
+      Contact(
+        ownerId: authUserId,
+        name: userProfile.displayName,
+        phoneNumber: ownerPhone,
+        isRegistered: true,
+        registeredUserId: authUserId,
+        createdAt: DateTime.now(),
+      ),
+    );
 
-    // Create project
+    // Find or create the Contact record representing the assignee.
+    var assigneeContact = await Contact.db.findFirstRow(
+      session,
+      where: (t) =>
+          t.ownerId.equals(authUserId) &
+          t.phoneNumber.equals(cleanAssigneePhone),
+    );
+    if (assigneeContact == null) {
+      assigneeContact = await Contact.db.insertRow(
+        session,
+        Contact(
+          ownerId: authUserId,
+          name: cleanAssigneeName,
+          phoneNumber: cleanAssigneePhone,
+          isRegistered: assigneeProfile != null,
+          registeredUserId: assigneeProfile?.authUserId,
+          createdAt: DateTime.now(),
+        ),
+      );
+    } else if (assigneeContact.name != cleanAssigneeName) {
+      assigneeContact = await Contact.db.updateRow(
+        session,
+        assigneeContact.copyWith(name: cleanAssigneeName),
+      );
+    }
+
+    // Create project referencing the owner's and assignee's Contact records
     final project = await Project.db.insertRow(
       session,
       Project(
         title: title.trim(),
         description: description.trim(),
-        ownerId: authUserId,
-        ownerPhone: userProfile.phoneNumber,
-        ownerName: userProfile.displayName,
-        executorId: assigneeProfile?.authUserId,
-        assigneePhone: cleanAssigneePhone,
-        assigneeName: assigneeName.trim(),
+        ownerId: ownerContact.id!,
+        assigneeId: assigneeContact.id!,
         overallStatus: 'pending',
         createdAt: DateTime.now(),
       ),
@@ -75,7 +120,11 @@ class ProjectEndpoint extends Endpoint {
       insertedItems.add(item);
     }
 
-    return project.copyWith(checklistItems: insertedItems);
+    return project.copyWith(
+      owner: ownerContact,
+      assignee: assigneeContact,
+      checklistItems: insertedItems,
+    );
   }
 
   /// Returns all projects created by the current user (Task Owner).
@@ -85,16 +134,19 @@ class ProjectEndpoint extends Endpoint {
 
     return await Project.db.find(
       session,
-      where: (t) => t.ownerId.equals(authUserId),
+      where: (t) => t.owner.registeredUserId.equals(authUserId),
       orderBy: (t) => t.createdAt.desc(),
       include: Project.include(
+        owner: Contact.include(),
+        assignee: Contact.include(),
         checklistItems: ChecklistItem.includeList(),
       ),
     );
   }
 
   /// Returns all projects assigned to the current user (Task Executor).
-  /// Matches either by executorId or by the user's registered phone number.
+  /// Matches either by the assignee Contact's registeredUserId or by the
+  /// user's registered phone number.
   Future<List<Project>> getReceivedProjects(Session session) async {
     final authUserId = session.authenticated?.authUserId;
     if (authUserId == null) return [];
@@ -109,20 +161,24 @@ class ProjectEndpoint extends Endpoint {
       return await Project.db.find(
         session,
         where: (t) =>
-            t.executorId.equals(authUserId) |
-            (t.assigneePhone.equals(userPhone) &
-                t.ownerId.notEquals(authUserId)),
+            t.assignee.registeredUserId.equals(authUserId) |
+            (t.assignee.phoneNumber.equals(userPhone) &
+                t.owner.registeredUserId.notEquals(authUserId)),
         orderBy: (t) => t.createdAt.desc(),
         include: Project.include(
+          owner: Contact.include(),
+          assignee: Contact.include(),
           checklistItems: ChecklistItem.includeList(),
         ),
       );
     } else {
       return await Project.db.find(
         session,
-        where: (t) => t.executorId.equals(authUserId),
+        where: (t) => t.assignee.registeredUserId.equals(authUserId),
         orderBy: (t) => t.createdAt.desc(),
         include: Project.include(
+          owner: Contact.include(),
+          assignee: Contact.include(),
           checklistItems: ChecklistItem.includeList(),
         ),
       );
@@ -135,6 +191,8 @@ class ProjectEndpoint extends Endpoint {
       session,
       projectId,
       include: Project.include(
+        owner: Contact.include(),
+        assignee: Contact.include(),
         checklistItems: ChecklistItem.includeList(
           orderBy: (t) => t.sortOrder,
         ),

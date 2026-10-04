@@ -2,7 +2,7 @@ class: ChecklistItem
 table: checklist_item
 fields:
   ### The project this item belongs to
-  project: Project?, relation(onDelete=Cascade)
+  project: Project?, relation(onDelete=Cascade, name=project_checklist_items, field=projectId)
   ### Task / item description
   title: String
   ### Completion status

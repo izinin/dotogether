@@ -5,29 +5,19 @@ fields:
   title: String
   ### Detailed notes or description
   description: String, default=''
-  ### User ID of the creator / Task Owner
-  ownerId: UuidValue
-  ### Phone number of the creator
-  ownerPhone: String?
-  ### User ID of the Task Executor if registered
-  executorId: UuidValue?
-  ### Contact phone number of the assignee
-  assigneePhone: String
-  ### Display name of the assignee
-  ownerName: String
-  ### Display name of the assignee
-  assigneeName: String
+  ### Contact record representing the project creator / Task Owner
+  owner: Contact?, relation
+  ### Contact record representing the Task Assignee/Executor
+  assignee: Contact?, relation
   ### Overall progress status: 'pending', 'in_progress', 'completed'
   overallStatus: String, default='pending'
   ### When the project was created
   createdAt: DateTime, default=now
   ### Interactive checklist items
-  checklistItems: List<ChecklistItem>?, relation
+  checklistItems: List<ChecklistItem>?, relation(name=project_checklist_items)
 
 indexes:
   project_owner_id_idx:
     fields: ownerId
-  project_executor_id_idx:
-    fields: executorId
-  project_assignee_phone_idx:
-    fields: assigneePhone
+  project_assignee_id_idx:
+    fields: assigneeId

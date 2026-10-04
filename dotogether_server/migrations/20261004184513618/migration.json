@@ -1,0 +1,50 @@
+{
+  "__className__": "serverpod.DatabaseMigration",
+  "actions": [
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "checklist_item",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [
+          "_projectChecklistitemsProjectId"
+        ],
+        "modifyColumns": [],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [
+          "checklist_item_fk_1"
+        ],
+        "warnings": [
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"_projectChecklistitemsProjectId\" of table \"checklist_item\" will be dropped.",
+            "table": "checklist_item",
+            "columns": [
+              "_projectChecklistitemsProjectId"
+            ],
+            "destrucive": true
+          }
+        ]
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"_projectChecklistitemsProjectId\" of table \"checklist_item\" will be dropped.",
+      "table": "checklist_item",
+      "columns": [
+        "_projectChecklistitemsProjectId"
+      ],
+      "destrucive": true
+    }
+  ],
+  "migrationApiVersion": 1
+}

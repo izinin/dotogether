@@ -194,11 +194,26 @@ class AppState extends ChangeNotifier {
         id: 1,
         title: 'tasks for you',
         description: 'Assigned to you by Hank. Please review and complete.',
-        ownerId: UuidValue.fromString('6ba7b810-9dad-11d1-80b4-00c04fd430c6'),
-        ownerPhone: '+(simulated)12309346',
-        assigneePhone: '+(simulated)12309344',
-        ownerName: 'Hank M. Zakroff',
-        assigneeName: 'myself',
+        ownerId: 11,
+        owner: backend.Contact(
+          id: 11,
+          ownerId: UuidValue.fromString(
+            '6ba7b810-9dad-11d1-80b4-00c04fd430c6',
+          ),
+          name: 'Hank M. Zakroff',
+          phoneNumber: '+(simulated)12309346',
+          createdAt: DateTime.now(),
+        ),
+        assigneeId: 12,
+        assignee: backend.Contact(
+          id: 12,
+          ownerId: UuidValue.fromString(
+            '6ba7b810-9dad-11d1-80b4-00c04fd430c6',
+          ),
+          name: 'myself',
+          phoneNumber: '+(simulated)12309344',
+          createdAt: DateTime.now(),
+        ),
         overallStatus: 'pending',
         createdAt: DateTime.now().subtract(const Duration(hours: 4)),
         checklistItems: [
@@ -226,11 +241,26 @@ class AppState extends ChangeNotifier {
         id: 2,
         title: 'shopping list',
         description: 'Groceries for the weekend dinner.',
-        ownerId: UuidValue.fromString('6ba7b810-9dad-11d1-80b4-00c04fd430c7'),
-        ownerPhone: '+(simulated)15556108',
-        assigneePhone: '+(simulated)12309344',
-        ownerName: 'David Taylor',
-        assigneeName: 'myself',
+        ownerId: 21,
+        owner: backend.Contact(
+          id: 21,
+          ownerId: UuidValue.fromString(
+            '6ba7b810-9dad-11d1-80b4-00c04fd430c7',
+          ),
+          name: 'David Taylor',
+          phoneNumber: '+(simulated)15556108',
+          createdAt: DateTime.now(),
+        ),
+        assigneeId: 22,
+        assignee: backend.Contact(
+          id: 22,
+          ownerId: UuidValue.fromString(
+            '6ba7b810-9dad-11d1-80b4-00c04fd430c7',
+          ),
+          name: 'myself',
+          phoneNumber: '+(simulated)12309344',
+          createdAt: DateTime.now(),
+        ),
         overallStatus: 'pending',
         createdAt: DateTime.now().subtract(const Duration(days: 1)),
         checklistItems: [
@@ -264,11 +294,26 @@ class AppState extends ChangeNotifier {
         id: 3,
         title: 'project "my company logo"',
         description: 'Design mockups and details.',
-        ownerId: UuidValue.fromString('6ba7b810-9dad-11d1-80b4-00c04fd430c8'),
-        ownerPhone: '+(simulated)12309344',
-        assigneePhone: '+(simulated)15555228',
-        ownerName: 'myself',
-        assigneeName: 'Anna Haro',
+        ownerId: 31,
+        owner: backend.Contact(
+          id: 31,
+          ownerId: UuidValue.fromString(
+            '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+          ),
+          name: 'myself',
+          phoneNumber: '+(simulated)12309344',
+          createdAt: DateTime.now(),
+        ),
+        assigneeId: 32,
+        assignee: backend.Contact(
+          id: 32,
+          ownerId: UuidValue.fromString(
+            '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+          ),
+          name: 'Anna Haro',
+          phoneNumber: '+(simulated)15555228',
+          createdAt: DateTime.now(),
+        ),
         overallStatus: 'completed',
         createdAt: DateTime.now().subtract(const Duration(days: 3)),
         checklistItems: [
@@ -296,11 +341,26 @@ class AppState extends ChangeNotifier {
         id: 4,
         title: 'your task for today',
         description: 'Urgent maintenance checks.',
-        ownerId: UuidValue.fromString('6ba7b810-9dad-11d1-80b4-00c04fd430c8'),
-        ownerPhone: '+(simulated)12309344',
-        assigneePhone: '+(simulated)15556106',
-        ownerName: 'myself',
-        assigneeName: 'Michael Appleseed',
+        ownerId: 41,
+        owner: backend.Contact(
+          id: 41,
+          ownerId: UuidValue.fromString(
+            '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+          ),
+          name: 'myself',
+          phoneNumber: '+(simulated)12309344',
+          createdAt: DateTime.now(),
+        ),
+        assigneeId: 42,
+        assignee: backend.Contact(
+          id: 42,
+          ownerId: UuidValue.fromString(
+            '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+          ),
+          name: 'Michael Appleseed',
+          phoneNumber: '+(simulated)15556106',
+          createdAt: DateTime.now(),
+        ),
         overallStatus: 'in_progress',
         createdAt: DateTime.now().subtract(const Duration(hours: 2)),
         checklistItems: [
@@ -325,10 +385,10 @@ class AppState extends ChangeNotifier {
 
   void _updateMockStream() {
     _createdProjects = _mockProjects
-        .where((p) => p.ownerPhone == _currentPhoneNumber)
+        .where((p) => p.owner?.phoneNumber == _currentPhoneNumber)
         .toList();
     _receivedProjects = _mockProjects
-        .where((p) => p.assigneePhone == _currentPhoneNumber)
+        .where((p) => p.assignee?.phoneNumber == _currentPhoneNumber)
         .toList();
     _mockProjectsController.add(_mockProjects);
     notifyListeners();
@@ -635,11 +695,24 @@ class AppState extends ChangeNotifier {
       id: projectId,
       title: title.trim(),
       description: description.trim(),
-      ownerId: ownerUuid,
-      ownerPhone: _currentPhoneNumber ?? '+(simulated)12309344',
-      assigneePhone: normalizedPhone,
-      ownerName: 'myself',
-      assigneeName: assigneeName,
+      ownerId: projectId * 10 + 1,
+      owner: backend.Contact(
+        id: projectId * 10 + 1,
+        ownerId: ownerUuid,
+        name: 'myself',
+        phoneNumber: _currentPhoneNumber ?? '+(simulated)12309344',
+        isRegistered: true,
+        registeredUserId: ownerUuid,
+        createdAt: DateTime.now(),
+      ),
+      assigneeId: projectId * 10 + 2,
+      assignee: backend.Contact(
+        id: projectId * 10 + 2,
+        ownerId: ownerUuid,
+        name: assigneeName,
+        phoneNumber: normalizedPhone,
+        createdAt: DateTime.now(),
+      ),
       overallStatus: 'pending',
       createdAt: DateTime.now(),
       checklistItems: items,
