@@ -25,16 +25,21 @@ class AppState extends ChangeNotifier {
 
   // Stepper Registration State
   int _registrationStep =
-      1; // 1: Input phone, 2: Loading/SMS code sent in progress, 3: Verify code
+      1; // 1: Input phone, 2: Loading/SMS code sent in progress, 3: Verify code,
+  // 4: Checking/editing user name, 5: Confirm & continue
   String _registrationPhone = '';
   String _verificationId = '';
   String _smsCodeError = '';
   String _phoneError = '';
+  String _userName = '';
+  String _userNameError = '';
 
   int get registrationStep => _registrationStep;
   String get registrationPhone => _registrationPhone;
   String get smsCodeError => _smsCodeError;
   String get phoneError => _phoneError;
+  String get userName => _userName;
+  String get userNameError => _userNameError;
 
   String? _initializeError;
   String? get initializeError => _initializeError;
@@ -343,7 +348,10 @@ class AppState extends ChangeNotifier {
     _currentPhoneNumber = null;
     _createdProjects = [];
     _receivedProjects = [];
-    notifyListeners();
+    _userName = '';
+    _verificationId = '';
+    _registrationPhone = '';
+    resetStepper();
   }
 
   // ================= AUTHENTICATION FLOW =================
@@ -454,8 +462,54 @@ class AppState extends ChangeNotifier {
       debugPrint('User is authenticated with Serverpod.');
     }
 
+    // Step 4: fetch the signed-in user's profile so the name step can be
+    // prefilled with the name currently stored in the database.
+    try {
+      final profile = await client.user.getProfile();
+      _userName = profile?.displayName ?? '';
+    } catch (e) {
+      debugPrint('Error fetching user profile: $e');
+    }
+
     _isLoading = false;
-    _registrationStep = 1;
+    _registrationStep = 4;
+    notifyListeners();
+  }
+
+  /// Step 4: Save the (possibly edited) user name and move to step 5.
+  Future<bool> submitUserName(String name) async {
+    name = name.trim();
+    if (name.isEmpty) {
+      _userNameError = 'Please enter your name';
+      notifyListeners();
+      return false;
+    }
+
+    _isLoading = true;
+    _userNameError = '';
+    notifyListeners();
+
+    try {
+      await client.user.updateProfile(
+        phoneNumber: _currentPhoneNumber,
+        displayName: name,
+      );
+      _userName = name;
+      _registrationStep = 5;
+      return true;
+    } catch (e) {
+      _userNameError = 'Could not save your name: ${e.toString()}';
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Step 5: Go back to step 4 to allow editing the user name again.
+  void backToEditUserName() {
+    _registrationStep = 4;
+    _userNameError = '';
     notifyListeners();
   }
 
@@ -464,6 +518,7 @@ class AppState extends ChangeNotifier {
     _registrationStep = 1;
     _phoneError = '';
     _smsCodeError = '';
+    _userNameError = '';
     _isLoading = false;
     notifyListeners();
   }

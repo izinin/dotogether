@@ -13,18 +13,29 @@ class AuthWithSmsScreen extends StatefulWidget {
 
 class _AuthWithSmsScreenState extends State<AuthWithSmsScreen> {
   final TextEditingController _phoneController = TextEditingController(
-    text: "+358442096093",
+    text: "+358",
     // text: "+358442023855",
   ); // Pre-filled from screenshot
   final TextEditingController _codeController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   String? _submittedPhone;
+  bool _nameFieldInitialized = false;
 
   @override
   void dispose() {
     _phoneController.dispose();
     _codeController.dispose();
+    _nameController.dispose();
     super.dispose();
+  }
+
+  void _navigateToHome() {
+    Navigator.of(
+      context,
+    ).pushReplacement(
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+    );
   }
 
   void _navigateBackToWelcome() {
@@ -76,7 +87,9 @@ class _AuthWithSmsScreenState extends State<AuthWithSmsScreen> {
                 _buildStepperRow(
                   stepNumber: 1,
                   title: 'Your phone number',
-                  subtitle: (_submittedPhone != null) ? 'you entered: $_submittedPhone' : 'Phone number with country code (+xxxx)',
+                  subtitle: (_submittedPhone != null)
+                      ? 'you entered: $_submittedPhone'
+                      : 'Phone number with country code (+xxxx)',
                   isActive: activeStep >= 1,
                   isCompleted: activeStep > 1,
                   child: activeStep == 1
@@ -305,20 +318,11 @@ class _AuthWithSmsScreenState extends State<AuthWithSmsScreen> {
                                     onPressed: appState.isLoading
                                         ? null
                                         : () async {
-                                            bool success = await appState
-                                                .verifySmsCode(
-                                                  _codeController.text,
-                                                );
-                                            if (success && context.mounted) {
-                                              Navigator.of(
-                                                context,
-                                              ).pushReplacement(
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      const HomeScreen(),
-                                                ),
-                                              );
-                                            }
+                                            // On success, appState advances
+                                            // the stepper to step 4.
+                                            await appState.verifySmsCode(
+                                              _codeController.text,
+                                            );
                                           },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: const Color(0xFF2196F3),
@@ -365,6 +369,164 @@ class _AuthWithSmsScreenState extends State<AuthWithSmsScreen> {
                               ],
                             ),
                           ],
+                        )
+                      : null,
+                ),
+
+                // Connector 3-4
+                _buildConnectorLine(isCompleted: activeStep > 3),
+
+                // Step 4 Widget Row
+                _buildStepperRow(
+                  stepNumber: 4,
+                  title: 'Checking user name',
+                  subtitle: activeStep == 4
+                      ? 'Confirm or edit the name on your profile'
+                      : (activeStep > 4
+                            ? 'Name: ${appState.userName}'
+                            : 'pending phone verification'),
+                  isActive: activeStep >= 4,
+                  isCompleted: activeStep > 4,
+                  child: () {
+                    if (activeStep != 4) return null;
+                    if (!_nameFieldInitialized) {
+                      // Prefill once with the name fetched from the
+                      // database; keep user edits afterwards, including
+                      // when returning here from step 5 via "Back".
+                      _nameController.text = appState.userName;
+                      _nameFieldInitialized = true;
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _nameController,
+                          style: const TextStyle(fontSize: 18),
+                          decoration: const InputDecoration(
+                            hintText: 'Your name',
+                            hintStyle: TextStyle(color: Colors.grey),
+                            isDense: true,
+                            contentPadding: EdgeInsets.symmetric(vertical: 8),
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Color(0xFF2196F3),
+                                width: 1.5,
+                              ),
+                            ),
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Color(0xFF2196F3),
+                                width: 2.0,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (appState.userNameError.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            appState.userNameError,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: 140,
+                          height: 42,
+                          child: ElevatedButton(
+                            onPressed: appState.isLoading
+                                ? null
+                                : () => appState.submitUserName(
+                                    _nameController.text,
+                                  ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2196F3),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              elevation: 2,
+                            ),
+                            child: appState.isLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                : const Text(
+                                    'CONTINUE',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }(),
+                ),
+
+                // Connector 4-5
+                _buildConnectorLine(isCompleted: activeStep > 4),
+
+                // Step 5 Widget Row
+                _buildStepperRow(
+                  stepNumber: 5,
+                  title: 'All set!',
+                  subtitle: activeStep == 5
+                      ? 'Welcome, ${appState.userName}'
+                      : 'pending user name',
+                  isActive: activeStep >= 5,
+                  isCompleted: false,
+                  child: activeStep == 5
+                      ? Padding(
+                          padding: const EdgeInsets.only(top: 16.0),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 140,
+                                height: 42,
+                                child: ElevatedButton(
+                                  onPressed: _navigateToHome,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF2196F3),
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    elevation: 2,
+                                  ),
+                                  child: const Text(
+                                    'CONTINUE',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              TextButton(
+                                onPressed: () => appState.backToEditUserName(),
+                                child: const Text(
+                                  'BACK',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         )
                       : null,
                 ),
