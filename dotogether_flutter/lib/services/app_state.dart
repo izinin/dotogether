@@ -7,21 +7,32 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:recaptcha_enterprise_flutter/recaptcha.dart';
 import 'package:recaptcha_enterprise_flutter/recaptcha_client.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../utils/project_extension.dart';
 import '../utils/phone_number_utility.dart';
 import '../client.dart';
+import 'mock_data.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AppState extends ChangeNotifier {
   late RecaptchaClient _recaptchaClient;
-  bool _isDemoMode = false; // Running with hardcoded demo functionality
+  final MockData _mockData = MockData();
+
+  bool _isLoadingContacts = false;
+  bool get isLoadingContacts => _isLoadingContacts;
 
   User? _currentUser;
   String? _currentUserUid;
   String? _currentPhoneNumber;
   bool _isLoading = false;
+
+  List<Project> _createdProjects = [];
+  List<Project> _receivedProjects = [];
+  List<Project> get createdProjects => _mockData.isDemoMode ? _mockData.createdProjects : _createdProjects;
+  List<Project> get receivedProjects => _mockData.isDemoMode ? _mockData.receivedProjects : _receivedProjects;
+  // Contacts State
+  List<Contact> _contacts = [];
+  List<Contact> get contacts =>  _mockData.isDemoMode ? _mockData.contacts : _contacts;
 
   // Stepper Registration State
   int _registrationStep =
@@ -44,29 +55,12 @@ class AppState extends ChangeNotifier {
   String? _initializeError;
   String? get initializeError => _initializeError;
 
-  // Contacts State
-  List<Contact> _contacts = [];
-  bool _isLoadingContacts = false;
-
-  // Local/Mock Database State (for Demo Mode)
-  final List<Project> _mockProjects = [];
-  final StreamController<List<Project>> _mockProjectsController =
-      StreamController<List<Project>>.broadcast();
-
-  List<Project> _createdProjects = [];
-  List<Project> _receivedProjects = [];
-
   // Getters
   RecaptchaClient get recaptchaClient => _recaptchaClient;
-  bool get isDemoMode => _isDemoMode;
+  bool get isDemoMode => _mockData.isDemoMode;
   String? get currentUserUid => _currentUserUid;
   String? get currentPhoneNumber => _currentPhoneNumber;
   bool get isLoading => _isLoading;
-
-  List<Contact> get contacts => _contacts;
-  List<Project> get createdProjects => _createdProjects;
-  List<Project> get receivedProjects => _receivedProjects;
-  bool get isLoadingContacts => _isLoadingContacts;
 
   // Private constructor
   AppState._internal() {
@@ -111,7 +105,7 @@ class AppState extends ChangeNotifier {
     try {
       // Try to initialize Firebase
       await Firebase.initializeApp();
-      _isDemoMode = false;
+      _mockData.isDemoMode = false;
       debugPrint(
         "DoTogether: Firebase initialized successfully. Running in LIVE mode.",
       );
@@ -131,28 +125,19 @@ class AppState extends ChangeNotifier {
   @override
   void dispose() {
     client.auth.authInfoListenable.removeListener(_onAuthChanged);
-    _mockProjectsController.close();
+    _mockData.mockProjectsController.close();
     super.dispose();
   }
 
   void _onAuthChanged() {
     if (client.auth.isAuthenticated) {
-      _isDemoMode = false;
+      _mockData.isDemoMode = false;
       ensureUserInDatabase();
-    } else if (!_isDemoMode) {
+    } else if (!_mockData.isDemoMode) {
       _currentUserUid = null;
       _currentPhoneNumber = null;
       notifyListeners();
     }
-  }
-
-  /// Start demo mode with hardcoded demo functionality and initial mock data
-  void startDemoMode() {
-    _isDemoMode = true;
-    _currentUserUid = 'demo_user_uid';
-    _currentPhoneNumber = '+(simulated)12309344';
-    _loadMockInitialData();
-    notifyListeners();
   }
 
   /// Ensure authenticated user is in the database and loaded into state
@@ -176,7 +161,9 @@ class AppState extends ChangeNotifier {
 
       _currentUserUid = profile.authUserId.toString();
       _currentPhoneNumber = profile.phoneNumber;
-      _updateMockStream();
+      _currentUser = FirebaseAuth.instance.currentUser;
+      _userName = profile.displayName;
+      await _refreshProjects();
     } catch (e) {
       debugPrint('Error syncing user with database: $e');
     } finally {
@@ -185,213 +172,30 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  /// Load screenshot-matching data for the Simulation/Demo mode
-  void _loadMockInitialData() {
-    _mockProjects.clear();
-
-    _mockProjects.addAll([
-      Project(
-        id: 1,
-        title: 'tasks for you',
-        description: 'Assigned to you by Hank. Please review and complete.',
-        ownerId: 11,
-        owner: backend.Contact(
-          id: 11,
-          ownerId: UuidValue.fromString(
-            '6ba7b810-9dad-11d1-80b4-00c04fd430c6',
-          ),
-          name: 'Hank M. Zakroff',
-          phoneNumber: '+(simulated)12309346',
-          createdAt: DateTime.now(),
-        ),
-        assigneeId: 12,
-        assignee: backend.Contact(
-          id: 12,
-          ownerId: UuidValue.fromString(
-            '6ba7b810-9dad-11d1-80b4-00c04fd430c6',
-          ),
-          name: 'myself',
-          phoneNumber: '+(simulated)12309344',
-          createdAt: DateTime.now(),
-        ),
-        overallStatus: 'pending',
-        createdAt: DateTime.now().subtract(const Duration(hours: 4)),
-        checklistItems: [
-          ChecklistItem(
-            id: 1,
-            projectId: 1,
-            title: 'Review project requirements',
-            isCompleted: false,
-          ),
-          ChecklistItem(
-            id: 2,
-            projectId: 1,
-            title: 'Design splash screen layout',
-            isCompleted: false,
-          ),
-          ChecklistItem(
-            id: 3,
-            projectId: 1,
-            title: 'Coordinate with database admin',
-            isCompleted: false,
-          ),
-        ],
-      ),
-      Project(
-        id: 2,
-        title: 'shopping list',
-        description: 'Groceries for the weekend dinner.',
-        ownerId: 21,
-        owner: backend.Contact(
-          id: 21,
-          ownerId: UuidValue.fromString(
-            '6ba7b810-9dad-11d1-80b4-00c04fd430c7',
-          ),
-          name: 'David Taylor',
-          phoneNumber: '+(simulated)15556108',
-          createdAt: DateTime.now(),
-        ),
-        assigneeId: 22,
-        assignee: backend.Contact(
-          id: 22,
-          ownerId: UuidValue.fromString(
-            '6ba7b810-9dad-11d1-80b4-00c04fd430c7',
-          ),
-          name: 'myself',
-          phoneNumber: '+(simulated)12309344',
-          createdAt: DateTime.now(),
-        ),
-        overallStatus: 'pending',
-        createdAt: DateTime.now().subtract(const Duration(days: 1)),
-        checklistItems: [
-          ChecklistItem(
-            id: 4,
-            projectId: 2,
-            title: 'Tomatoes & Basil',
-            isCompleted: false,
-          ),
-          ChecklistItem(
-            id: 5,
-            projectId: 2,
-            title: 'Mozzarella cheese',
-            isCompleted: false,
-          ),
-          ChecklistItem(
-            id: 6,
-            projectId: 2,
-            title: 'Olive oil (extra virgin)',
-            isCompleted: false,
-          ),
-          ChecklistItem(
-            id: 7,
-            projectId: 2,
-            title: 'Pasta/Spaghetti',
-            isCompleted: false,
-          ),
-        ],
-      ),
-      Project(
-        id: 3,
-        title: 'project "my company logo"',
-        description: 'Design mockups and details.',
-        ownerId: 31,
-        owner: backend.Contact(
-          id: 31,
-          ownerId: UuidValue.fromString(
-            '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
-          ),
-          name: 'myself',
-          phoneNumber: '+(simulated)12309344',
-          createdAt: DateTime.now(),
-        ),
-        assigneeId: 32,
-        assignee: backend.Contact(
-          id: 32,
-          ownerId: UuidValue.fromString(
-            '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
-          ),
-          name: 'Anna Haro',
-          phoneNumber: '+(simulated)15555228',
-          createdAt: DateTime.now(),
-        ),
-        overallStatus: 'completed',
-        createdAt: DateTime.now().subtract(const Duration(days: 3)),
-        checklistItems: [
-          ChecklistItem(
-            id: 8,
-            projectId: 3,
-            title: 'Research reference brand assets',
-            isCompleted: true,
-          ),
-          ChecklistItem(
-            id: 9,
-            projectId: 3,
-            title: 'Draw 3 vector variations',
-            isCompleted: true,
-          ),
-          ChecklistItem(
-            id: 10,
-            projectId: 3,
-            title: 'Select typography settings',
-            isCompleted: true,
-          ),
-        ],
-      ),
-      Project(
-        id: 4,
-        title: 'your task for today',
-        description: 'Urgent maintenance checks.',
-        ownerId: 41,
-        owner: backend.Contact(
-          id: 41,
-          ownerId: UuidValue.fromString(
-            '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
-          ),
-          name: 'myself',
-          phoneNumber: '+(simulated)12309344',
-          createdAt: DateTime.now(),
-        ),
-        assigneeId: 42,
-        assignee: backend.Contact(
-          id: 42,
-          ownerId: UuidValue.fromString(
-            '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
-          ),
-          name: 'Michael Appleseed',
-          phoneNumber: '+(simulated)15556106',
-          createdAt: DateTime.now(),
-        ),
-        overallStatus: 'in_progress',
-        createdAt: DateTime.now().subtract(const Duration(hours: 2)),
-        checklistItems: [
-          ChecklistItem(
-            id: 11,
-            projectId: 4,
-            title: 'Check server performance',
-            isCompleted: true,
-          ),
-          ChecklistItem(
-            id: 12,
-            projectId: 4,
-            title: 'Backup transaction logs',
-            isCompleted: false,
-          ),
-        ],
-      ),
-    ]);
-
-    _updateMockStream();
+  /// Refresh the created/received project lists from the appropriate source:
+  /// the local mock data in Demo Mode, or the real server for authenticated
+  /// (non-demo) users.
+  Future<void> _refreshProjects() async {
+    if (_mockData.isDemoMode) {
+      _mockData.updateMockStream();
+    } else {
+      await _loadProjectsFromServer();
+    }
   }
 
-  void _updateMockStream() {
-    _createdProjects = _mockProjects
-        .where((p) => p.owner?.phoneNumber == _currentPhoneNumber)
-        .toList();
-    _receivedProjects = _mockProjects
-        .where((p) => p.assignee?.phoneNumber == _currentPhoneNumber)
-        .toList();
-    _mockProjectsController.add(_mockProjects);
-    notifyListeners();
+  /// Fetch the real created/received projects from the Serverpod backend.
+  Future<void> _loadProjectsFromServer() async {
+    try {
+      final results = await Future.wait([
+        client.project.getCreatedProjects(),
+        client.project.getReceivedProjects(),
+      ]);
+      _createdProjects = results[0];
+      _receivedProjects = results[1];
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading projects from server: $e');
+    }
   }
 
   /// Sign Out
@@ -403,7 +207,7 @@ class AppState extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error signing out of Serverpod: $e');
     }
-    _isDemoMode = false;
+    _mockData.isDemoMode = false;
     _currentUserUid = null;
     _currentPhoneNumber = null;
     _createdProjects = [];
@@ -479,7 +283,7 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  Future<void> mockSignIn(String phoneNumber) async {
+  Future<void> testSignIn(String phoneNumber) async {
     final authSuccess = await client.phoneAuth.authenticateWithFirebasePhone(
       backend.PhoneAuthPayload(
         phoneNumber: phoneNumber,
@@ -596,64 +400,34 @@ class AppState extends ChangeNotifier {
         PermissionType.read,
       );
 
-      if (!_isDemoMode &&
-          [
+      if ([
             PermissionStatus.granted,
             PermissionStatus.limited,
           ].contains(permission)) {
-        List<Contact> deviceContacts = await FlutterContacts.getAll(
+        _contacts = await FlutterContacts.getAll(
           properties: {
             ContactProperty.name,
             ContactProperty.phone,
             ContactProperty.email,
           },
         );
-        _contacts = deviceContacts;
       } else {
-        _loadSimulatedContacts();
+        throw Exception('Contacts permission not granted');
       }
     } catch (e) {
       debugPrint("Contacts Fetch Error: $e. Falling back to simulated list.");
-      _loadSimulatedContacts();
     }
 
     _isLoadingContacts = false;
     notifyListeners();
   }
 
-  void _loadSimulatedContacts() {
-    _contacts = [
-      Contact(
-        displayName: 'Hank M. Zakroff',
-        phones: [Phone(number: '+(simulated)12309346')],
-      ),
-      Contact(
-        displayName: 'Michael Appleseed',
-        phones: [Phone(number: '+(simulated)15556106')],
-      ),
-      Contact(
-        displayName: 'Anna Haro',
-        phones: [Phone(number: '+(simulated)15555228')],
-      ),
-      Contact(
-        displayName: 'David Taylor',
-        phones: [Phone(number: '+(simulated)15556108')],
-      ),
-      // Contacts not used in any initial task, available to create new tasks:
-      Contact(
-        displayName: 'Sarah Connor',
-        phones: [Phone(number: '+(simulated)57890123')],
-      ),
-      Contact(
-        displayName: 'John Doe',
-        phones: [Phone(number: '+(simulated)85098760')],
-      ),
-    ];
-  }
-
   // ================= COLLABORATIVE taskList OPERATIONS =================
 
-  /// Create a shared Project / taskList, save to local mock db, and prepare invitation SMS parameters
+  /// Create a shared Project / taskList and prepare invitation SMS parameters.
+  /// In Demo Mode this only mutates the local mock database; otherwise it
+  /// creates the owner/assignee Contact records and the Project on the
+  /// real Serverpod backend.
   Future<Map<String, String>> createProject({
     required String title,
     required String description,
@@ -665,68 +439,39 @@ class AppState extends ChangeNotifier {
     notifyListeners();
 
     String normalizedPhone = PhoneNumberUtility.normalize(assigneeRawPhone);
+    List<String> checklistTitles = taskTexts
+        .map((t) => t.trim())
+        .where((t) => t.isNotEmpty)
+        .toList();
 
-    int projectId = DateTime.now().millisecondsSinceEpoch;
-
-    List<ChecklistItem> items = [];
-    int sortIdx = 0;
-    for (var t in taskTexts) {
-      if (t.trim().isNotEmpty) {
-        items.add(
-          ChecklistItem(
-            id: DateTime.now().millisecondsSinceEpoch + sortIdx,
-            projectId: projectId,
-            title: t.trim(),
-            isCompleted: false,
-            sortOrder: sortIdx++,
-          ),
+    if (_mockData.isDemoMode) {
+      _mockData.createMockProject(
+        title: title,
+        description: description,
+        assigneeName: assigneeName,
+        normalizedPhone: normalizedPhone,
+        checklistTitles: checklistTitles,
+      );
+    } else {
+      try {
+        await client.project.createProject(
+          title: title.trim(),
+          description: description.trim(),
+          assigneeName: assigneeName,
+          assigneePhone: normalizedPhone,
+          checklistTitles: checklistTitles,
         );
+      } catch (e) {
+        debugPrint('Error creating project on server: $e');
       }
+      await _loadProjectsFromServer();
     }
-
-    UuidValue ownerUuid;
-    try {
-      ownerUuid = UuidValue.fromString(_currentUserUid ?? '');
-    } catch (_) {
-      ownerUuid = UuidValue.fromString('6ba7b810-9dad-11d1-80b4-00c04fd430c8');
-    }
-
-    Project newProject = Project(
-      id: projectId,
-      title: title.trim(),
-      description: description.trim(),
-      ownerId: projectId * 10 + 1,
-      owner: backend.Contact(
-        id: projectId * 10 + 1,
-        ownerId: ownerUuid,
-        name: 'myself',
-        phoneNumber: _currentPhoneNumber ?? '+(simulated)12309344',
-        isRegistered: true,
-        registeredUserId: ownerUuid,
-        createdAt: DateTime.now(),
-      ),
-      assigneeId: projectId * 10 + 2,
-      assignee: backend.Contact(
-        id: projectId * 10 + 2,
-        ownerId: ownerUuid,
-        name: assigneeName,
-        phoneNumber: normalizedPhone,
-        createdAt: DateTime.now(),
-      ),
-      overallStatus: 'pending',
-      createdAt: DateTime.now(),
-      checklistItems: items,
-    );
-
-    // Save project in mock local state
-    _mockProjects.insert(0, newProject);
-    _updateMockStream();
 
     _isLoading = false;
     notifyListeners();
 
     // Prepare SMS body containing tasks summary and Play Store link
-    String tasksSummary = items.map((e) => "- [ ] ${e.title}").join("\n");
+    String tasksSummary = checklistTitles.map((e) => "- [ ] $e").join("\n");
     String smsMessage =
         "Hello $assigneeName!\n"
         "I have created a taskList '$title' for you:\n"
@@ -738,36 +483,33 @@ class AppState extends ChangeNotifier {
     return {'recipient': normalizedPhone, 'body': smsMessage};
   }
 
-  /// Update task checkboxes and automatically recalculate overall project progress/status
+  /// Update task checkboxes and automatically recalculate overall project progress/status.
+  /// In Demo Mode this only mutates the local mock database; otherwise it
+  /// calls the real Serverpod backend and refreshes the project lists.
   Future<void> toggleTask(
     Project project,
     int itemIndex,
     bool isCompleted,
   ) async {
-    final items = project.checklistItems;
-    if (items != null && itemIndex < items.length) {
-      items[itemIndex].isCompleted = isCompleted;
-      if (isCompleted) {
-        items[itemIndex].completedAt = DateTime.now();
+    if (_mockData.isDemoMode) {
+      await _mockData.toggleTask(project, itemIndex, isCompleted);
+    } else {
+      final items = project.checklistItems;
+      final itemId = (items != null && itemIndex < items.length)
+          ? items[itemIndex].id
+          : null;
+      if (itemId == null) return;
+      try {
+        await client.project.toggleChecklistItem(
+          itemId: itemId,
+          isCompleted: isCompleted,
+        );
+      } catch (e) {
+        debugPrint('Error toggling checklist item on server: $e');
       }
+      await _loadProjectsFromServer();
     }
-
-    // Recalculate status
-    double completion = project.completionPercentage;
-    String newStatus = 'pending';
-    if (completion == 1.0) {
-      newStatus = 'completed';
-    } else if (completion > 0.0) {
-      newStatus = 'in_progress';
-    }
-
-    project.overallStatus = newStatus;
-
-    int idx = _mockProjects.indexWhere((p) => p.id == project.id);
-    if (idx != -1) {
-      _mockProjects[idx] = project;
-    }
-    _updateMockStream();
+    notifyListeners();
   }
 
   /// Launch SMS via standard device URL launcher
@@ -801,5 +543,10 @@ class AppState extends ChangeNotifier {
     } catch (e) {
       debugPrint("SMS Launch Exception: $e");
     }
+  }
+
+  void startDemoMode() {
+    _mockData.startDemoMode();
+    notifyListeners();
   }
 }
