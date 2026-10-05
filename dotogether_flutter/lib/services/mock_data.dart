@@ -3,9 +3,7 @@
 // real (server-backed) logic isn't cluttered with fixture data.
 import 'dart:async';
 
-import 'package:dotogether_client/dotogether_client.dart' hide Contact;
-import 'package:dotogether_client/dotogether_client.dart' as backend;
-import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:dotogether_client/dotogether_client.dart';
 import '../utils/project_extension.dart';
 
 class MockData {
@@ -28,8 +26,10 @@ class MockData {
   List<Contact> _contacts = [];
   List<Contact> get contacts => _contacts;
 
-  final StreamController<List<Project>> _mockProjectsController = StreamController<List<Project>>.broadcast();
-  StreamController<List<Project>> get mockProjectsController => _mockProjectsController;
+  final StreamController<List<Project>> _mockProjectsController =
+      StreamController<List<Project>>.broadcast();
+  StreamController<List<Project>> get mockProjectsController =>
+      _mockProjectsController;
 
   /// Start demo mode with hardcoded demo functionality and initial mock data
   void startDemoMode() {
@@ -88,7 +88,7 @@ class MockData {
       title: title.trim(),
       description: description.trim(),
       ownerId: projectId * 10 + 1,
-      owner: backend.Contact(
+      owner: Contact(
         id: projectId * 10 + 1,
         ownerId: ownerUuid,
         name: 'myself',
@@ -98,7 +98,7 @@ class MockData {
         createdAt: DateTime.now(),
       ),
       assigneeId: projectId * 10 + 2,
-      assignee: backend.Contact(
+      assignee: Contact(
         id: projectId * 10 + 2,
         ownerId: ownerUuid,
         name: assigneeName,
@@ -123,7 +123,7 @@ class MockData {
         title: 'tasks for you',
         description: 'Assigned to you by Hank. Please review and complete.',
         ownerId: 11,
-        owner: backend.Contact(
+        owner: Contact(
           id: 11,
           ownerId: UuidValue.fromString('6ba7b810-9dad-11d1-80b4-00c04fd430c6'),
           name: 'Hank M. Zakroff',
@@ -131,7 +131,7 @@ class MockData {
           createdAt: DateTime.now(),
         ),
         assigneeId: 12,
-        assignee: backend.Contact(
+        assignee: Contact(
           id: 12,
           ownerId: UuidValue.fromString('6ba7b810-9dad-11d1-80b4-00c04fd430c6'),
           name: 'myself',
@@ -166,7 +166,7 @@ class MockData {
         title: 'shopping list',
         description: 'Groceries for the weekend dinner.',
         ownerId: 21,
-        owner: backend.Contact(
+        owner: Contact(
           id: 21,
           ownerId: UuidValue.fromString('6ba7b810-9dad-11d1-80b4-00c04fd430c7'),
           name: 'David Taylor',
@@ -174,7 +174,7 @@ class MockData {
           createdAt: DateTime.now(),
         ),
         assigneeId: 22,
-        assignee: backend.Contact(
+        assignee: Contact(
           id: 22,
           ownerId: UuidValue.fromString('6ba7b810-9dad-11d1-80b4-00c04fd430c7'),
           name: 'myself',
@@ -215,7 +215,7 @@ class MockData {
         title: 'project "my company logo"',
         description: 'Design mockups and details.',
         ownerId: 31,
-        owner: backend.Contact(
+        owner: Contact(
           id: 31,
           ownerId: UuidValue.fromString('6ba7b810-9dad-11d1-80b4-00c04fd430c8'),
           name: 'myself',
@@ -223,7 +223,7 @@ class MockData {
           createdAt: DateTime.now(),
         ),
         assigneeId: 32,
-        assignee: backend.Contact(
+        assignee: Contact(
           id: 32,
           ownerId: UuidValue.fromString('6ba7b810-9dad-11d1-80b4-00c04fd430c8'),
           name: 'Anna Haro',
@@ -258,7 +258,7 @@ class MockData {
         title: 'your task for today',
         description: 'Urgent maintenance checks.',
         ownerId: 41,
-        owner: backend.Contact(
+        owner: Contact(
           id: 41,
           ownerId: UuidValue.fromString('6ba7b810-9dad-11d1-80b4-00c04fd430c8'),
           name: 'myself',
@@ -266,7 +266,7 @@ class MockData {
           createdAt: DateTime.now(),
         ),
         assigneeId: 42,
-        assignee: backend.Contact(
+        assignee: Contact(
           id: 42,
           ownerId: UuidValue.fromString('6ba7b810-9dad-11d1-80b4-00c04fd430c8'),
           name: 'Michael Appleseed',
@@ -293,35 +293,26 @@ class MockData {
     ];
   }
 
-  /// High-fidelity simulated device contacts used when running in Demo Mode
-  /// (or when real device contacts can't be read).
+  /// High-fidelity simulated contacts used when running in Demo Mode.
   List<Contact> _buildSimulatedContacts() {
+    final demoOwnerId = UuidValue.fromString(
+      '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+    );
+    Contact simulated(String name, String phone) => Contact(
+      ownerId: demoOwnerId,
+      name: name,
+      phoneNumber: phone,
+      createdAt: DateTime.now(),
+    );
+
     return [
-      Contact(
-        displayName: 'Hank M. Zakroff',
-        phones: [Phone(number: '+(simulated)12309346')],
-      ),
-      Contact(
-        displayName: 'Michael Appleseed',
-        phones: [Phone(number: '+(simulated)15556106')],
-      ),
-      Contact(
-        displayName: 'Anna Haro',
-        phones: [Phone(number: '+(simulated)15555228')],
-      ),
-      Contact(
-        displayName: 'David Taylor',
-        phones: [Phone(number: '+(simulated)15556108')],
-      ),
+      simulated('Hank M. Zakroff', '+(simulated)12309346'),
+      simulated('Michael Appleseed', '+(simulated)15556106'),
+      simulated('Anna Haro', '+(simulated)15555228'),
+      simulated('David Taylor', '+(simulated)15556108'),
       // Contacts not used in any initial task, available to create new tasks:
-      Contact(
-        displayName: 'Sarah Connor',
-        phones: [Phone(number: '+(simulated)57890123')],
-      ),
-      Contact(
-        displayName: 'John Doe',
-        phones: [Phone(number: '+(simulated)85098760')],
-      ),
+      simulated('Sarah Connor', '+(simulated)57890123'),
+      simulated('John Doe', '+(simulated)85098760'),
     ];
   }
 

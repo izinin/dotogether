@@ -36,12 +36,10 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
     // Filter contacts based on search query
     final filteredContacts = contacts.where((contact) {
-      final name = contact.displayName?.toLowerCase();
+      final name = contact.name.toLowerCase();
       final query = _searchQuery.toLowerCase();
-      final phones = contact.phones
-          .map((p) => p.number.replaceAll(RegExp(r'\D'), ''))
-          .join(" ");
-      return name != null && name.contains(query) || phones.contains(query);
+      final phone = contact.phoneNumber.replaceAll(RegExp(r'\D'), '');
+      return name.contains(query) || phone.contains(query);
     }).toList();
 
     return Scaffold(
@@ -139,12 +137,11 @@ class _FriendsScreenState extends State<FriendsScreen> {
                         const Divider(height: 1, indent: 72),
                     itemBuilder: (context, index) {
                       final contact = filteredContacts[index];
-                      final displayName = contact.displayName;
-                      final phone = contact.phones.isNotEmpty
-                          ? contact.phones.first.number
+                      final displayName = contact.name;
+                      final phone = contact.phoneNumber.isNotEmpty
+                          ? contact.phoneNumber
                           : 'No Phone Number';
-                      final firstLetter =
-                          displayName == null || displayName.isEmpty
+                      final firstLetter = displayName.isEmpty
                           ? '?'
                           : displayName[0].toUpperCase();
 
@@ -164,7 +161,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                           ),
                         ),
                         title: Text(
-                          displayName ?? 'Unknown',
+                          displayName.isEmpty ? 'Unknown' : displayName,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -179,7 +176,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                           ),
                         ),
                         onTap: () {
-                          if (contact.phones.isEmpty) {
+                          if (contact.phoneNumber.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text(
@@ -193,7 +190,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => CreateProjectScreen(
-                                contactName: displayName ?? 'Unknown',
+                                contactName: displayName.isEmpty
+                                    ? 'Unknown'
+                                    : displayName,
                                 contactPhone: phone,
                               ),
                             ),

@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:dotogether_client/dotogether_client.dart' hide Contact;
-import 'package:dotogether_client/dotogether_client.dart' as backend;
+import 'package:dotogether_client/dotogether_client.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:recaptcha_enterprise_flutter/recaptcha.dart';
 import 'package:recaptcha_enterprise_flutter/recaptcha_client.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -28,11 +26,14 @@ class AppState extends ChangeNotifier {
 
   List<Project> _createdProjects = [];
   List<Project> _receivedProjects = [];
-  List<Project> get createdProjects => _mockData.isDemoMode ? _mockData.createdProjects : _createdProjects;
-  List<Project> get receivedProjects => _mockData.isDemoMode ? _mockData.receivedProjects : _receivedProjects;
+  List<Project> get createdProjects =>
+      _mockData.isDemoMode ? _mockData.createdProjects : _createdProjects;
+  List<Project> get receivedProjects =>
+      _mockData.isDemoMode ? _mockData.receivedProjects : _receivedProjects;
   // Contacts State
   List<Contact> _contacts = [];
-  List<Contact> get contacts =>  _mockData.isDemoMode ? _mockData.contacts : _contacts;
+  List<Contact> get contacts =>
+      _mockData.isDemoMode ? _mockData.contacts : _contacts;
 
   // Stepper Registration State
   int _registrationStep =
@@ -285,7 +286,7 @@ class AppState extends ChangeNotifier {
 
   Future<void> testSignIn(String phoneNumber) async {
     final authSuccess = await client.phoneAuth.authenticateWithFirebasePhone(
-      backend.PhoneAuthPayload(
+      PhoneAuthPayload(
         phoneNumber: phoneNumber,
         displayName: _currentUser!.displayName ?? 'fake name',
         email: _currentUser!.email ?? 'fake email',
@@ -312,7 +313,7 @@ class AppState extends ChangeNotifier {
     _currentPhoneNumber = _currentUser?.phoneNumber;
 
     final authSuccess = await client.phoneAuth.authenticateWithFirebasePhone(
-      backend.PhoneAuthPayload(
+      PhoneAuthPayload(
         phoneNumber: _currentUser!.phoneNumber!,
         displayName: _currentUser!.displayName ?? 'please fill your name',
         email: _currentUser!.email ?? 'please add your email',
@@ -389,33 +390,35 @@ class AppState extends ChangeNotifier {
 
   // ================= CONTACTS HANDLER =================
 
-  /// Fetch Contacts from device or load high-fidelity simulated contacts
+  /// Build the list of known contacts for the "Select Contact" screen.
+  /// In Demo Mode this is the local simulated list; otherwise it's derived
+  /// from the Contact records (owner/assignee) found across all of the
+  /// current user's Projects (created + received), deduplicated by phone
+  /// number and excluding the current user's own contact entry.
   Future<void> fetchContacts() async {
+    if (_mockData.isDemoMode) return;
+
     _isLoadingContacts = true;
     notifyListeners();
 
     try {
-      // Direct plugin call to verify contacts permission
-      final permission = await FlutterContacts.permissions.request(
-        PermissionType.read,
-      );
+      await _loadProjectsFromServer();
 
-      if ([
-            PermissionStatus.granted,
-            PermissionStatus.limited,
-          ].contains(permission)) {
-        _contacts = await FlutterContacts.getAll(
-          properties: {
-            ContactProperty.name,
-            ContactProperty.phone,
-            ContactProperty.email,
-          },
-        );
-      } else {
-        throw Exception('Contacts permission not granted');
+      final Map<String, Contact> byPhone = {};
+      for (final project in [..._createdProjects, ..._receivedProjects]) {
+        for (final contact in [project.owner, project.assignee]) {
+          if (contact == null) continue;
+          final phone = contact.phoneNumber.trim();
+          if (phone.isEmpty || phone == _currentPhoneNumber) continue;
+          byPhone[phone] = contact;
+        }
       }
+      _contacts = byPhone.values.toList()
+        ..sort(
+          (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+        );
     } catch (e) {
-      debugPrint("Contacts Fetch Error: $e. Falling back to simulated list.");
+      debugPrint('Error loading contacts: $e');
     }
 
     _isLoadingContacts = false;

@@ -36,7 +36,6 @@ dependencies:
     path: ../dotogether_client
   serverpod_flutter: 4.0.3
   serverpod_auth_idp_flutter: 4.0.3
-  flutter_contacts: ^2.5.0
   firebase_core: ^4.15.0
   firebase_auth: ^6.7.0
   provider: ^6.1.5+1
