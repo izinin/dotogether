@@ -193,5 +193,64 @@ void main() {
       );
       expect(unregisteredContact.isRegistered, isFalse);
     });
+
+    test(
+      'when getting contacts then only owner/assignee contacts from own projects are returned, deduplicated and excluding self',
+      () async {
+        await endpoints.user.updateProfile(
+          authedUser1,
+          phoneNumber: '+15551110000',
+          displayName: 'User One',
+        );
+        await endpoints.user.updateProfile(
+          authedUser2,
+          phoneNumber: '+15552220000',
+          displayName: 'User Two',
+        );
+
+        // User 1 creates two projects assigned to the same person,
+        // which should be deduplicated by phone number.
+        await endpoints.project.createProject(
+          authedUser1,
+          title: 'Task A',
+          description: 'First task',
+          assigneeName: 'Dana',
+          assigneePhone: '+15553330000',
+          checklistTitles: ['Step 1'],
+        );
+        await endpoints.project.createProject(
+          authedUser1,
+          title: 'Task B',
+          description: 'Second task',
+          assigneeName: 'Dana',
+          assigneePhone: '+15553330000',
+          checklistTitles: ['Step 1'],
+        );
+
+        // User 2 creates a project assigning user 1, which should surface
+        // user 2 as a contact for user 1.
+        await endpoints.project.createProject(
+          authedUser2,
+          title: 'Task C',
+          description: 'Third task',
+          assigneeName: 'User One',
+          assigneePhone: '+15551110000',
+          checklistTitles: ['Step 1'],
+        );
+
+        final contacts = await endpoints.contact.getContacts(authedUser1);
+        final phones = contacts.map((c) => c.phoneNumber).toSet();
+
+        // Dana appears once despite being assignee on two projects.
+        expect(
+          contacts.where((c) => c.phoneNumber == '+15553330000'),
+          hasLength(1),
+        );
+        // User 2 shows up as a contact since they share a project.
+        expect(phones, contains('+15552220000'));
+        // User 1 never sees their own phone number in their contacts.
+        expect(phones, isNot(contains('+15551110000')));
+      },
+    );
   });
 }

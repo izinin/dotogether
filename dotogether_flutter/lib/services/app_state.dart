@@ -390,11 +390,12 @@ class AppState extends ChangeNotifier {
 
   // ================= CONTACTS HANDLER =================
 
-  /// Build the list of known contacts for the "Select Contact" screen.
-  /// In Demo Mode this is the local simulated list; otherwise it's derived
-  /// from the Contact records (owner/assignee) found across all of the
-  /// current user's Projects (created + received), deduplicated by phone
-  /// number and excluding the current user's own contact entry.
+  /// Fetch the list of known contacts for the "Select Contact" screen.
+  /// In Demo Mode this is the local simulated list; otherwise it's fetched
+  /// from the server, which derives it from the Contact records (owner/
+  /// assignee) found across all of the current user's Projects (created +
+  /// received), deduplicated by phone number and excluding the current
+  /// user's own contact entry.
   Future<void> fetchContacts() async {
     if (_mockData.isDemoMode) return;
 
@@ -402,21 +403,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _loadProjectsFromServer();
-
-      final Map<String, Contact> byPhone = {};
-      for (final project in [..._createdProjects, ..._receivedProjects]) {
-        for (final contact in [project.owner, project.assignee]) {
-          if (contact == null) continue;
-          final phone = contact.phoneNumber.trim();
-          if (phone.isEmpty || phone == _currentPhoneNumber) continue;
-          byPhone[phone] = contact;
-        }
-      }
-      _contacts = byPhone.values.toList()
-        ..sort(
-          (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
-        );
+      _contacts = await client.contact.getContacts();
     } catch (e) {
       debugPrint('Error loading contacts: $e');
     }

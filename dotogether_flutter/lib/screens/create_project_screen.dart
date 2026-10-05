@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/app_state.dart';
+import '../utils/phone_number_utility.dart';
 
 class CreateProjectScreen extends StatefulWidget {
   final String contactName;
@@ -49,6 +50,15 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
     }
   }
 
+  /// Whether [widget.contactPhone] already matches one of the current
+  /// user's known Contacts (by normalized phone number).
+  bool _isExistingContact(AppState appState) {
+    final normalizedPhone = PhoneNumberUtility.normalize(widget.contactPhone);
+    return appState.contacts.any(
+      (c) => PhoneNumberUtility.normalize(c.phoneNumber) == normalizedPhone,
+    );
+  }
+
   Future<void> _submitAndSend() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -76,8 +86,18 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
       taskTexts: taskTexts,
     );
 
-    // Show custom dialog letting the user know they are jumping to their SMS app
     if (!mounted) return;
+
+    // If the assignee is already a known contact (found by phone number
+    // among the current user's contacts), skip the SMS invitation dialog
+    // and go straight back to the dashboard.
+    if (_isExistingContact(appState)) {
+      Navigator.of(context).pop(); // Pops Create Screen
+      Navigator.of(context).pop(); // Pops Friends Screen
+      return;
+    }
+
+    // Show custom dialog letting the user know they are jumping to their SMS app
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -92,7 +112,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
             onPressed: () async {
               Navigator.of(dialogCtx).pop(); // Close dialog
 
-              if (appState.isDemoMode) {
+              if (!appState.isDemoMode) {
                 // Trigger SMS launcher
                 await appState.sendSMSInvitation(
                   smsData['recipient']!,
