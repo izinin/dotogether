@@ -28,9 +28,8 @@ class ContactEndpoint extends Endpoint {
     final allProfiles = await AppUserData.db.find(session);
     final phoneToUserId = <String, UuidValue>{};
     for (var profile in allProfiles) {
-      if (profile.phoneNumber != null &&
-          profile.phoneNumber!.trim().isNotEmpty) {
-        phoneToUserId[profile.phoneNumber!.trim()] = profile.authUserId;
+      if (profile.phoneNumber.trim().isNotEmpty) {
+        phoneToUserId[profile.phoneNumber.trim()] = profile.authUserId;
       }
     }
 

@@ -95,7 +95,6 @@ class AppState extends ChangeNotifier {
         ? "6Le85c4tAAAAAIke5x8jNxjzOEQSujO36SyeXDJw"
         : "6Ldu-c4tAAAAAFZBglNMN6H-Cf8eZurqDwqNU6sG";
 
-    // TODO: learn more about the RecaptchaClient usage and how to integrate it with the app's auth flow
     _recaptchaClient = await Recaptcha.fetchClient(siteKey);
   }
 
@@ -390,7 +389,7 @@ class AppState extends ChangeNotifier {
 
   // ================= CONTACTS HANDLER =================
 
-  /// Fetch the list of known contacts for the "Create TODO list for" screen.
+  /// Fetch the list of known contacts for the "Create todo list for" screen.
   /// In Demo Mode this is the local simulated list; otherwise it's fetched
   /// from the server, which derives it from the Contact records (owner/
   /// assignee) found across all of the current user's Projects (created +

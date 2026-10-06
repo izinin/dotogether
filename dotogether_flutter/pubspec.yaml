@@ -17,7 +17,9 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 
 # ios versioning follows the format CFBundleShortVersionString (version) and CFBundleVersion (build number)
-version: 1.0.0+2
+# version: 1.0.0+3
+# android
+version: 1.0.0+16
 
 environment:
   sdk: '^3.12.2'
@@ -46,9 +48,18 @@ dev_dependencies:
   # Used for agents to drive the app through the Dart MCP
   flutter_driver:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.4
   flutter_lints: '>=3.0.0 <7.0.0'
   flutter_test:
     sdk: flutter
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  # For Android 13+ Adaptive Icons (optional):
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon/app_icon.png"
 
 dependency_overrides:
   flutter_secure_storage: ^10.0.0

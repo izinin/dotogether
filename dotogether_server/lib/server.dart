@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:serverpod_auth_idp_server/core.dart';
-import 'package:serverpod_auth_idp_server/providers/email.dart';
 import 'package:serverpod_cloud_storage/serverpod_cloud_storage.dart';
 
 import 'src/cache_busting.dart';
