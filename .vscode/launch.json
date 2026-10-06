@@ -9,7 +9,11 @@
             "request": "launch",
             "type": "dart",
             "program": "bin/main.dart",
-            "cwd": "${workspaceFolder}/dotogether_server"
+            "cwd": "${workspaceFolder}/dotogether_server",
+            "args": [
+                "--mode",
+                "development"
+            ]
         },
         {
             "name": "dotogether",

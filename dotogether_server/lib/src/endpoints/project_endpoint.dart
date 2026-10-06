@@ -11,6 +11,11 @@ class ProjectEndpoint extends Endpoint {
   /// and the assignee, then creates the Project referencing both.
   /// If the assignee phone matches an existing registered user, the
   /// assignee Contact is immediately marked as registered.
+  ///
+  /// Contact rows are shared globally (deduplicated by phone number, which
+  /// along with `ownerId` must be unique): a phone number that is already
+  /// known (e.g. as someone else's assignee, or as that person's own
+  /// registered profile) is reused rather than re-inserted.
   Future<Project> createProject(
     Session session, {
     required String title,
@@ -43,49 +48,28 @@ class ProjectEndpoint extends Endpoint {
     );
 
     // Find or create the Contact record representing the project owner
-    // (the creator's own entry in their own address book).
-    var ownerContact = await Contact.db.findFirstRow(
+    // (the creator's own entry in the global Contact registry).
+    final ownerContact = await _findOrCreateContact(
       session,
-      where: (t) =>
-          t.ownerId.equals(authUserId) & t.phoneNumber.equals(ownerPhone),
-    );
-    ownerContact ??= await Contact.db.insertRow(
-      session,
-      Contact(
-        ownerId: authUserId,
-        name: userProfile.displayName,
-        phoneNumber: ownerPhone,
-        isRegistered: true,
-        registeredUserId: authUserId,
-        createdAt: DateTime.now(),
-      ),
+      phone: ownerPhone,
+      name: userProfile.displayName,
+      isRegistered: true,
+      registeredUserId: authUserId,
+      ownerIdForNew: authUserId,
     );
 
     // Find or create the Contact record representing the assignee.
-    var assigneeContact = await Contact.db.findFirstRow(
+    final assigneeContact = await _findOrCreateContact(
       session,
-      where: (t) =>
-          t.ownerId.equals(authUserId) &
-          t.phoneNumber.equals(cleanAssigneePhone),
+      phone: cleanAssigneePhone,
+      name: cleanAssigneeName,
+      isRegistered: assigneeProfile != null,
+      registeredUserId: assigneeProfile?.authUserId,
+      // If the assignee is already a registered user, their own authUserId
+      // is used as the (unique) ownerId; otherwise mint a fresh one, since
+      // `ownerId` must be unique and not null across all Contact rows.
+      ownerIdForNew: assigneeProfile?.authUserId ?? const Uuid().v4obj(),
     );
-    if (assigneeContact == null) {
-      assigneeContact = await Contact.db.insertRow(
-        session,
-        Contact(
-          ownerId: authUserId,
-          name: cleanAssigneeName,
-          phoneNumber: cleanAssigneePhone,
-          isRegistered: assigneeProfile != null,
-          registeredUserId: assigneeProfile?.authUserId,
-          createdAt: DateTime.now(),
-        ),
-      );
-    } else if (assigneeContact.name != cleanAssigneeName) {
-      assigneeContact = await Contact.db.updateRow(
-        session,
-        assigneeContact.copyWith(name: cleanAssigneeName),
-      );
-    }
 
     // Create project referencing the owner's and assignee's Contact records
     final project = await Project.db.insertRow(
@@ -266,5 +250,44 @@ class ProjectEndpoint extends Endpoint {
       session,
       project.copyWith(overallStatus: status),
     );
+  }
+
+  /// Finds the Contact row matching [phone] in the global Contact registry,
+  /// updating its name if it changed, or creates a new one with
+  /// [ownerIdForNew] if no row for that phone number exists yet. Contact
+  /// rows are shared across all users (deduplicated by phone number), so an
+  /// existing row's `ownerId` is never reassigned.
+  Future<Contact> _findOrCreateContact(
+    Session session, {
+    required String phone,
+    required String name,
+    required bool isRegistered,
+    required UuidValue? registeredUserId,
+    required UuidValue ownerIdForNew,
+  }) async {
+    final existing = await Contact.db.findFirstRow(
+      session,
+      where: (t) => t.phoneNumber.equals(phone),
+    );
+    if (existing == null) {
+      return await Contact.db.insertRow(
+        session,
+        Contact(
+          ownerId: ownerIdForNew,
+          name: name,
+          phoneNumber: phone,
+          isRegistered: isRegistered,
+          registeredUserId: registeredUserId,
+          createdAt: DateTime.now(),
+        ),
+      );
+    }
+    if (existing.name != name) {
+      return await Contact.db.updateRow(
+        session,
+        existing.copyWith(name: name),
+      );
+    }
+    return existing;
   }
 }

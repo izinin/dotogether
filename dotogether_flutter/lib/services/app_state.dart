@@ -288,9 +288,9 @@ class AppState extends ChangeNotifier {
     final authSuccess = await client.phoneAuth.authenticateWithFirebasePhone(
       PhoneAuthPayload(
         phoneNumber: phoneNumber,
-        displayName: _currentUser!.displayName ?? 'fake name',
-        email: _currentUser!.email ?? 'fake email',
-        photoUrl: _currentUser!.photoURL ?? 'fake photo',
+        displayName: 'fake name',
+        email: 'fake email',
+        photoUrl: 'fake photo',
       ),
     );
 

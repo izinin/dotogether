@@ -93,6 +93,10 @@ class _FriendsScreenState extends State<FriendsScreen> {
       return name.contains(query) || phone.contains(query);
     }).toList();
 
+    // The "pick from phone book" entry is only available outside demo mode.
+    final showPhoneBookPicker = !appState.isDemoMode;
+    final itemCount = filteredContacts.length + (showPhoneBookPicker ? 1 : 0);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -159,46 +163,40 @@ class _FriendsScreenState extends State<FriendsScreen> {
                       ),
                     ),
                   )
-                : Column(
-                    children: [
-                      if (filteredContacts.isEmpty)
-                        Expanded(
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.people_outline,
-                                  size: 64,
-                                  color: Colors.grey.shade300,
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  _searchQuery.isNotEmpty
-                                      ? 'No contacts match your search.'
-                                      : 'No contacts found.',
-                                  style: TextStyle(
-                                    color: Colors.grey.shade500,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      else
-                        Expanded(
-                          child: ListView.separated(
-                            itemCount: filteredContacts.length,
-                            separatorBuilder: (context, index) =>
-                                const Divider(height: 1, indent: 72),
-                            itemBuilder: (context, index) =>
-                                _buildContactTile(filteredContacts[index]),
+                : itemCount == 0
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.people_outline,
+                          size: 64,
+                          color: Colors.grey.shade300,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          _searchQuery.isNotEmpty
+                              ? 'No contacts match your search.'
+                              : 'No contacts found.',
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 16,
                           ),
                         ),
-                      const Divider(height: 1, indent: 72),
-                      _buildPickFromPhoneBookTile(),
-                    ],
+                      ],
+                    ),
+                  )
+                : ListView.separated(
+                    itemCount: itemCount,
+                    separatorBuilder: (context, index) =>
+                        const Divider(height: 1, indent: 72),
+                    itemBuilder: (context, index) {
+                      if (showPhoneBookPicker &&
+                          index == filteredContacts.length) {
+                        return _buildPickFromPhoneBookTile();
+                      }
+                      return _buildContactTile(filteredContacts[index]);
+                    },
                   ),
           ),
         ],

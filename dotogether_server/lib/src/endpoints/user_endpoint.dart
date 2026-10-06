@@ -11,10 +11,11 @@ class UserEndpoint extends Endpoint {
     final authUserId = session.authenticated?.authUserId;
     if (authUserId == null) return null;
 
-    return await AppUserData.db.findFirstRow(
+    final result = await AppUserData.db.findFirstRow(
       session,
       where: (t) => t.authUserId.equals(authUserId),
     );
+    return result;
   }
 
   /// Updates or creates the user's phone number and push notification device token.

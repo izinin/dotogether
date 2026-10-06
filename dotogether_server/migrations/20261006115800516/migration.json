@@ -1,0 +1,98 @@
+{
+  "__className__": "serverpod.DatabaseMigration",
+  "actions": [
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "contact",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [],
+        "modifyColumns": [],
+        "addIndexes": [
+          {
+            "__className__": "serverpod.IndexDefinition",
+            "indexName": "contact__ownerId__unique_idx",
+            "elements": [
+              {
+                "__className__": "serverpod.IndexElementDefinition",
+                "type": 0,
+                "definition": "ownerId"
+              }
+            ],
+            "type": "btree",
+            "isUnique": true,
+            "isPrimary": false
+          },
+          {
+            "__className__": "serverpod.IndexDefinition",
+            "indexName": "contact__phoneNumber__unique_idx",
+            "elements": [
+              {
+                "__className__": "serverpod.IndexElementDefinition",
+                "type": 0,
+                "definition": "phoneNumber"
+              }
+            ],
+            "type": "btree",
+            "isUnique": true,
+            "isPrimary": false
+          }
+        ],
+        "deleteIndexes": [
+          "contact_owner_idx",
+          "contact_phone_idx"
+        ],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": [
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "uniqueIndexCreated",
+            "message": "Unique index \"contact__ownerId__unique_idx\" is added to table \"contact\". If there are existing rows with duplicate values, this migration will fail.",
+            "table": "contact",
+            "columns": [
+              "ownerId"
+            ],
+            "destrucive": false
+          },
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "uniqueIndexCreated",
+            "message": "Unique index \"contact__phoneNumber__unique_idx\" is added to table \"contact\". If there are existing rows with duplicate values, this migration will fail.",
+            "table": "contact",
+            "columns": [
+              "phoneNumber"
+            ],
+            "destrucive": false
+          }
+        ]
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "uniqueIndexCreated",
+      "message": "Unique index \"contact__ownerId__unique_idx\" is added to table \"contact\". If there are existing rows with duplicate values, this migration will fail.",
+      "table": "contact",
+      "columns": [
+        "ownerId"
+      ],
+      "destrucive": false
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "uniqueIndexCreated",
+      "message": "Unique index \"contact__phoneNumber__unique_idx\" is added to table \"contact\". If there are existing rows with duplicate values, this migration will fail.",
+      "table": "contact",
+      "columns": [
+        "phoneNumber"
+      ],
+      "destrucive": false
+    }
+  ],
+  "migrationApiVersion": 1
+}

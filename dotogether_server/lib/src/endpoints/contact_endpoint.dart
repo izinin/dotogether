@@ -10,7 +10,11 @@ class ContactEndpoint extends Endpoint {
   /// this server process, so the DDL isn't re-issued on every call.
   static bool _getContactsFunctionReady = false;
 
-  /// Syncs phone contacts to the database and checks which contacts match registered app users.
+  /// Syncs phone contacts into the global Contact registry (deduplicated by
+  /// phone number) and checks which contacts match registered app users.
+  /// Existing rows for a phone number are updated in place (name and
+  /// registration status) rather than deleted and reinserted, since
+  /// `phoneNumber` and `ownerId` must each be unique and not null.
   Future<List<Contact>> syncContacts(
     Session session,
     List<Contact> inputContacts,
@@ -30,33 +34,50 @@ class ContactEndpoint extends Endpoint {
       }
     }
 
-    // Remove old contacts for this owner to maintain clean sync
-    final existingContacts = await Contact.db.find(
-      session,
-      where: (t) => t.ownerId.equals(authUserId),
-    );
-    for (var c in existingContacts) {
-      await Contact.db.deleteRow(session, c);
-    }
-
     List<Contact> synced = [];
     for (var c in inputContacts) {
       final cleanPhone = c.phoneNumber.trim();
+      final cleanName = c.name.trim();
       final isRegistered = phoneToUserId.containsKey(cleanPhone);
       final registeredUserId = phoneToUserId[cleanPhone];
 
-      final inserted = await Contact.db.insertRow(
+      final existing = await Contact.db.findFirstRow(
         session,
-        Contact(
-          ownerId: authUserId,
-          name: c.name.trim(),
-          phoneNumber: cleanPhone,
-          isRegistered: isRegistered,
-          registeredUserId: registeredUserId,
-          createdAt: DateTime.now(),
-        ),
+        where: (t) => t.phoneNumber.equals(cleanPhone),
       );
-      synced.add(inserted);
+      if (existing == null) {
+        synced.add(
+          await Contact.db.insertRow(
+            session,
+            Contact(
+              // The owning user's own phone number keeps their authUserId
+              // as the contact's ownerId; any other phone number not yet
+              // known to the registry is assigned a fresh, unique ownerId.
+              ownerId: registeredUserId ?? const Uuid().v4obj(),
+              name: cleanName,
+              phoneNumber: cleanPhone,
+              isRegistered: isRegistered,
+              registeredUserId: registeredUserId,
+              createdAt: DateTime.now(),
+            ),
+          ),
+        );
+      } else if (existing.name != cleanName ||
+          existing.isRegistered != isRegistered ||
+          existing.registeredUserId != registeredUserId) {
+        synced.add(
+          await Contact.db.updateRow(
+            session,
+            existing.copyWith(
+              name: cleanName,
+              isRegistered: isRegistered,
+              registeredUserId: registeredUserId,
+            ),
+          ),
+        );
+      } else {
+        synced.add(existing);
+      }
     }
 
     return synced;
