@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart'
+    as contact_picker;
 import 'package:provider/provider.dart';
+import 'package:dotogether_client/dotogether_client.dart';
 import '../services/app_state.dart';
 import 'create_project_screen.dart';
 
@@ -12,6 +15,8 @@ class FriendsScreen extends StatefulWidget {
 
 class _FriendsScreenState extends State<FriendsScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final contact_picker.FlutterNativeContactPicker _contactPicker =
+      contact_picker.FlutterNativeContactPicker();
   String _searchQuery = "";
 
   @override
@@ -27,6 +32,52 @@ class _FriendsScreenState extends State<FriendsScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _openCreateProjectScreen(String contactName, String contactPhone) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => CreateProjectScreen(
+          contactName: contactName.isEmpty ? 'Unknown' : contactName,
+          contactPhone: contactPhone,
+        ),
+      ),
+    );
+  }
+
+  /// Opens the device's native contact picker and, if a contact with a
+  /// phone number was selected, continues the same Project creation flow
+  /// used for a contact picked from the server-backed Contact list.
+  Future<void> _pickFromPhoneBook() async {
+    try {
+      final picked = await _contactPicker.selectPhoneNumber();
+      if (picked == null) return;
+
+      final phone =
+          picked.selectedPhoneNumber ??
+          (picked.phoneNumbers?.isNotEmpty == true
+              ? picked.phoneNumbers!.first
+              : '');
+      if (!mounted) return;
+
+      if (phone.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Selected contact does not have a phone number.'),
+          ),
+        );
+        return;
+      }
+
+      _openCreateProjectScreen(picked.fullName ?? '', phone);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Contact picker is not available on this device.'),
+        ),
+      );
+    }
   }
 
   @override
@@ -52,7 +103,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
-          'Select Contact',
+          'Create TODO list for',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -108,102 +159,123 @@ class _FriendsScreenState extends State<FriendsScreen> {
                       ),
                     ),
                   )
-                : filteredContacts.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.people_outline,
-                          size: 64,
-                          color: Colors.grey.shade300,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _searchQuery.isNotEmpty
-                              ? 'No contacts match your search.'
-                              : 'No contacts found.',
-                          style: TextStyle(
-                            color: Colors.grey.shade500,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.separated(
-                    itemCount: filteredContacts.length,
-                    separatorBuilder: (context, index) =>
-                        const Divider(height: 1, indent: 72),
-                    itemBuilder: (context, index) {
-                      final contact = filteredContacts[index];
-                      final displayName = contact.name;
-                      final phone = contact.phoneNumber.isNotEmpty
-                          ? contact.phoneNumber
-                          : 'No Phone Number';
-                      final firstLetter = displayName.isEmpty
-                          ? '?'
-                          : displayName[0].toUpperCase();
-
-                      return ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 4,
-                        ),
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.blue.shade100,
-                          child: Text(
-                            firstLetter,
-                            style: const TextStyle(
-                              color: Color(0xFF2196F3),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        title: Text(
-                          displayName.isEmpty ? 'Unknown' : displayName,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        subtitle: Text(
-                          phone,
-                          style: TextStyle(
-                            color: Colors.grey.shade500,
-                            fontSize: 13,
-                          ),
-                        ),
-                        onTap: () {
-                          if (contact.phoneNumber.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'This contact does not have a phone number.',
+                : Column(
+                    children: [
+                      if (filteredContacts.isEmpty)
+                        Expanded(
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.people_outline,
+                                  size: 64,
+                                  color: Colors.grey.shade300,
                                 ),
-                              ),
-                            );
-                            return;
-                          }
-                          // Open creation screen
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => CreateProjectScreen(
-                                contactName: displayName.isEmpty
-                                    ? 'Unknown'
-                                    : displayName,
-                                contactPhone: phone,
-                              ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  _searchQuery.isNotEmpty
+                                      ? 'No contacts match your search.'
+                                      : 'No contacts found.',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade500,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
                             ),
-                          );
-                        },
-                      );
-                    },
+                          ),
+                        )
+                      else
+                        Expanded(
+                          child: ListView.separated(
+                            itemCount: filteredContacts.length,
+                            separatorBuilder: (context, index) =>
+                                const Divider(height: 1, indent: 72),
+                            itemBuilder: (context, index) =>
+                                _buildContactTile(filteredContacts[index]),
+                          ),
+                        ),
+                      const Divider(height: 1, indent: 72),
+                      _buildPickFromPhoneBookTile(),
+                    ],
                   ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPickFromPhoneBookTile() {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 20,
+        vertical: 4,
+      ),
+      leading: CircleAvatar(
+        backgroundColor: Colors.grey.shade200,
+        child: Icon(Icons.contact_phone, color: Colors.grey.shade700),
+      ),
+      title: const Text(
+        'Pick from phone book',
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: Colors.black87,
+        ),
+      ),
+      subtitle: const Text(
+        'Select a contact from your device',
+        style: TextStyle(color: Colors.grey, fontSize: 13),
+      ),
+      onTap: _pickFromPhoneBook,
+    );
+  }
+
+  Widget _buildContactTile(Contact contact) {
+    final String displayName = contact.name;
+    final String phone = contact.phoneNumber.isNotEmpty
+        ? contact.phoneNumber
+        : 'No Phone Number';
+    final firstLetter = displayName.isEmpty
+        ? '?'
+        : displayName[0].toUpperCase();
+
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      leading: CircleAvatar(
+        backgroundColor: Colors.blue.shade100,
+        child: Text(
+          firstLetter,
+          style: const TextStyle(
+            color: Color(0xFF2196F3),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      title: Text(
+        displayName.isEmpty ? 'Unknown' : displayName,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: Colors.black87,
+        ),
+      ),
+      subtitle: Text(
+        phone,
+        style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+      ),
+      onTap: () {
+        if (contact.phoneNumber.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('This contact does not have a phone number.'),
+            ),
+          );
+          return;
+        }
+        _openCreateProjectScreen(displayName, phone);
+      },
     );
   }
 }

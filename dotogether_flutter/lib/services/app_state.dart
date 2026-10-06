@@ -390,7 +390,7 @@ class AppState extends ChangeNotifier {
 
   // ================= CONTACTS HANDLER =================
 
-  /// Fetch the list of known contacts for the "Select Contact" screen.
+  /// Fetch the list of known contacts for the "Create TODO list for" screen.
   /// In Demo Mode this is the local simulated list; otherwise it's fetched
   /// from the server, which derives it from the Contact records (owner/
   /// assignee) found across all of the current user's Projects (created +

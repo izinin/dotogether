@@ -90,12 +90,12 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 28),
 
-            // List Row 3: My friends
+            // List Row 3: Create project
             _buildNavigationItem(
               context,
               icon:
                   Icons.phone_enabled_outlined, // Matches mockup telephone icon
-              title: 'My friends',
+              title: 'Create project',
               subtitle: 'find and assign tasks',
               onTap: () {
                 Navigator.of(context).push(

@@ -41,6 +41,7 @@ dependencies:
   provider: ^6.1.5+1
   url_launcher: ^6.3.2
   recaptcha_enterprise_flutter: ^18.9.3
+  flutter_native_contact_picker: ^0.0.12
 dev_dependencies:
   # Used for agents to drive the app through the Dart MCP
   flutter_driver:
