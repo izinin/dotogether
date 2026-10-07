@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:dotogether_client/dotogether_client.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:recaptcha_enterprise_flutter/recaptcha.dart';
 import 'package:recaptcha_enterprise_flutter/recaptcha_client.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -13,6 +15,21 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AppState extends ChangeNotifier {
+  // 1. Background message handler
+  // This MUST be a top-level, global function annotated with @pragma('vm:entry-point')
+  @pragma('vm:entry-point')
+  static Future<void> _firebaseMessagingBackgroundHandler(
+    RemoteMessage message,
+  ) async {
+    // Ensure Firebase engine is alive inside the background isolate process
+    await Firebase.initializeApp();
+    debugPrint("Handling a background message: ${message.messageId}");
+  }
+
+  // Global reference to the local notification client engine
+  static final FlutterLocalNotificationsPlugin localNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
   late RecaptchaClient _recaptchaClient;
   final MockData _mockData = MockData();
 
@@ -80,6 +97,7 @@ class AppState extends ChangeNotifier {
 
   Future<void> _initialize() async {
     await _initFirebaseAuth();
+    await _initPushNotifications();
     await _initRecaptchaClient();
 
     await client.auth.restore();
@@ -87,6 +105,25 @@ class AppState extends ChangeNotifier {
       await ensureUserInDatabase();
     }
     notifyListeners();
+  }
+
+  Future<void> _initPushNotifications() async {
+    // Register background hook entry point early
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    // Setup high-importance channel configuration explicitly for Android foregrounds
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'high_importance_channel',
+      'High Importance Notifications',
+      'Channel for high importance notifications',
+      importance: Importance.high,
+    );
+
+    await localNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.createNotificationChannel(channel);
   }
 
   Future<void> _initRecaptchaClient() async {

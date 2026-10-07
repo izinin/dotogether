@@ -1,5 +1,7 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
 import 'services/app_state.dart';
@@ -98,8 +100,82 @@ ThemeData _buildTheme(Brightness brightness) {
   );
 }
 
-class DoTogetherApp extends StatelessWidget {
+class DoTogetherApp extends StatefulWidget {
   const DoTogetherApp({super.key});
+
+  @override
+  State<DoTogetherApp> createState() => _DoTogetherAppState();
+}
+
+class _DoTogetherAppState extends State<DoTogetherApp> {
+  @override
+  void initState() {
+    super.initState();
+    _initializeNotificationServices();
+  }
+
+  Future<void> _initializeNotificationServices() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+    // 2. Request System Permissions (Required for iOS; Safe to execute globally)
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      debugPrint('User granted messaging authorization.');
+
+      // 3. Extract the Unique Device Registration Token
+      // Persist this string token to your server database to target individual devices.
+      String? token = await messaging.getToken();
+      debugPrint("FCM Device Token: $token");
+
+      // 4. FOREGROUND STREAM LISTENER (App is wide open and active)
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        RemoteNotification? notification = message.notification;
+        AndroidNotification? android = message.notification?.android;
+
+        // Manually build visual overlay banner since Android suppresses it in foreground
+        if (notification != null && android != null) {
+          AppState.localNotificationsPlugin.show(
+            notification.hashCode,
+            notification.title,
+            notification.body,
+            NotificationDetails(
+              android: AndroidNotificationDetails(
+                'high_importance_channel',
+                'High Importance Notifications',
+                'Channel for high importance notifications',
+                icon: '@mipmap/ic_launcher', // Default system app icon
+              ),
+            ),
+          );
+        }
+      });
+
+      // 5. TERMINATED STATE INTERACTION (User clicks banner while app is completely closed)
+      RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+      if (initialMessage != null) {
+        _handleNotificationRouting(initialMessage.data);
+      }
+
+      // 6. BACKGROUND STATE INTERACTION (User clicks banner while app is minimized)
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        _handleNotificationRouting(message.data);
+      });
+    }
+  }
+
+  // Custom function to process metadata payloads and handle target navigation routing
+  void _handleNotificationRouting(Map<String, dynamic> data) {
+    debugPrint("User engaged notification banner. Payload payload details: $data");
+    // Example target routing:
+    // if (data.containsKey('route')) {
+    //   Navigator.pushNamed(context, data['route']);
+    // }
+  }
 
   @override
   Widget build(BuildContext context) {
