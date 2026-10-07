@@ -41,6 +41,10 @@ class AppState extends ChangeNotifier {
   String? _currentPhoneNumber;
   bool _isLoading = false;
 
+  // Latest FCM device token obtained from Firebase Messaging; kept here so
+  // it can be (re)sent to the server once the user becomes authenticated.
+  String? _deviceToken;
+
   List<Project> _createdProjects = [];
   List<Project> _receivedProjects = [];
   List<Project> get createdProjects =>
@@ -170,10 +174,31 @@ class AppState extends ChangeNotifier {
     if (client.auth.isAuthenticated) {
       _mockData.isDemoMode = false;
       ensureUserInDatabase();
+      _syncDeviceTokenWithServer();
     } else if (!_mockData.isDemoMode) {
       _currentUserUid = null;
       _currentPhoneNumber = null;
       notifyListeners();
+    }
+  }
+
+  /// Records the current FCM device token (obtained/refreshed in `main.dart`)
+  /// and, if the user is already authenticated, immediately pushes it to the
+  /// server so push notifications can target this device. If the user isn't
+  /// authenticated yet, the token is simply remembered and sent later from
+  /// [_onAuthChanged] once sign-in completes.
+  Future<void> registerDeviceToken(String? token) async {
+    if (token == null || token.isEmpty || token == _deviceToken) return;
+    _deviceToken = token;
+    await _syncDeviceTokenWithServer();
+  }
+
+  Future<void> _syncDeviceTokenWithServer() async {
+    if (_deviceToken == null || !client.auth.isAuthenticated) return;
+    try {
+      await client.user.updateDeviceToken(deviceToken: _deviceToken!);
+    } catch (e) {
+      debugPrint('Error registering device token with server: $e');
     }
   }
 

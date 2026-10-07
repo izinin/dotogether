@@ -7,7 +7,6 @@ import 'screens/home_screen.dart';
 import 'services/app_state.dart';
 import 'screens/welcome_screen.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
-
 import 'client.dart';
 
 void main() async {
@@ -127,10 +126,20 @@ class _DoTogetherAppState extends State<DoTogetherApp> {
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       debugPrint('User granted messaging authorization.');
 
-      // 3. Extract the Unique Device Registration Token
-      // Persist this string token to your server database to target individual devices.
+      // 3. Extract the Unique Device Registration Token and persist it to
+      // the server so push notifications can target this device. Also
+      // listen for token refreshes (tokens can rotate at any time) and keep
+      // the server copy up to date.
       String? token = await messaging.getToken();
       debugPrint("FCM Device Token: $token");
+      if (mounted) {
+        await context.read<AppState>().registerDeviceToken(token);
+      }
+      FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+        if (mounted) {
+          context.read<AppState>().registerDeviceToken(newToken);
+        }
+      });
 
       // 4. FOREGROUND STREAM LISTENER (App is wide open and active)
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -156,7 +165,8 @@ class _DoTogetherAppState extends State<DoTogetherApp> {
       });
 
       // 5. TERMINATED STATE INTERACTION (User clicks banner while app is completely closed)
-      RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+      RemoteMessage? initialMessage = await FirebaseMessaging.instance
+          .getInitialMessage();
       if (initialMessage != null) {
         _handleNotificationRouting(initialMessage.data);
       }
@@ -170,7 +180,9 @@ class _DoTogetherAppState extends State<DoTogetherApp> {
 
   // Custom function to process metadata payloads and handle target navigation routing
   void _handleNotificationRouting(Map<String, dynamic> data) {
-    debugPrint("User engaged notification banner. Payload payload details: $data");
+    debugPrint(
+      "User engaged notification banner. Payload payload details: $data",
+    );
     // Example target routing:
     // if (data.containsKey('route')) {
     //   Navigator.pushNamed(context, data['route']);
@@ -185,7 +197,9 @@ class _DoTogetherAppState extends State<DoTogetherApp> {
       theme: _buildTheme(Brightness.light),
       darkTheme: _buildTheme(Brightness.dark),
       themeMode: ThemeMode.system,
-      home: (client.auth.isAuthenticated) ? const HomeScreen() : const WelcomeScreen(),
+      home: (client.auth.isAuthenticated)
+          ? const HomeScreen()
+          : const WelcomeScreen(),
       onGenerateRoute: (settings) {
         // Intercept Firebase reCAPTCHA deep links and prevent Flutter Navigator errors
         if (settings.name != null && settings.name!.startsWith('/link')) {

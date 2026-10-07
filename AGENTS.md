@@ -47,4 +47,18 @@ If the user asks you to test the app:
 
 The app is launched from `dotogether_flutter/lib/driver.dart`, which starts the Flutter driver extension with text entry emulation turned off so the app stays usable by hand. To let the driver type, set `enableTextEntryEmulation: true` there and `hot_restart` the app.
 
-IMPORTANT: After building the first version of the app, update this AGENTS.md file with information about the app we're building. KEEP the info about the MCP server and the checklist. Remove this paragraph.
+## About DoTogether
+
+DoTogether lets a user (the Task Owner) create a shared to-do list ("Project") with a checklist, and assign it to a contact (the Assignee) by phone number. The Assignee gets an SMS invite; once they register in the app (phone auth via Firebase), their Contact record is linked automatically and the Project shows up in their "received" list. Progress (`overallStatus`: pending/in_progress/completed) is recomputed automatically as checklist items are checked off.
+
+Key models (`dotogether_server/lib/src/models/*.spy.yaml`): `AppUserData` (phone, display name, FCM `deviceToken`, keyed by `authUserId`), `Contact` (global registry deduplicated by phone number), `Project` (owner/assignee `Contact` relations + checklist), `ChecklistItem`.
+
+Key endpoints: `UserEndpoint` (profile + `updateDeviceToken`), `ContactEndpoint` (syncing/looking up contacts), `ProjectEndpoint` (create/list/complete projects and checklist items).
+
+### Push notifications
+
+Implemented with Firebase Cloud Messaging:
+
+- **Client** (`dotogether_flutter/lib/main.dart`, `lib/services/app_state.dart`): requests notification permission, obtains/refreshes the FCM token, and sends it to the server via `client.user.updateDeviceToken()` once authenticated (`AppState.registerDeviceToken`). Foreground messages are shown via `flutter_local_notifications`; background/terminated taps are routed in `_handleNotificationRouting`.
+- **Server** (`dotogether_server/lib/src/services/push_notification_service.dart`): wraps the `firebase_admin_sdk` package's Messaging API. Requires the `firebaseServiceAccountJson` secret in `config/passwords.yaml` (full JSON of a Firebase service account key); notifications are silently skipped if it's not configured (e.g. in tests).
+- **Triggers** (`ProjectEndpoint`): on `createProject`, the assignee is notified if they're already a registered user; on `toggleChecklistItem`, the project owner is notified when the project's `overallStatus` transitions to `completed`.

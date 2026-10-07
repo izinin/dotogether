@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart';
 import '../generated/protocol.dart';
+import '../services/push_notification_service.dart';
 
 class ProjectEndpoint extends Endpoint {
   @override
@@ -102,6 +103,17 @@ class ProjectEndpoint extends Endpoint {
         ),
       );
       insertedItems.add(item);
+    }
+
+    // Notify the assignee if they're a registered user with a device token.
+    if (assigneeProfile != null) {
+      await PushNotificationService.sendToDevice(
+        session,
+        deviceToken: assigneeProfile.deviceToken,
+        title: 'New task list assigned to you',
+        body: '${userProfile.displayName} assigned you "${title.trim()}"',
+        data: {'projectId': project.id.toString(), 'type': 'project_assigned'},
+      );
     }
 
     return project.copyWith(
@@ -232,7 +244,43 @@ class ProjectEndpoint extends Endpoint {
       project.copyWith(overallStatus: newStatus),
     );
 
+    // Notify the project owner when the assignee just finished all tasks.
+    if (newStatus == 'completed' && project.overallStatus != 'completed') {
+      await _notifyOwnerOfCompletion(session, updatedProject);
+    }
+
     return updatedProject.copyWith(checklistItems: allItems);
+  }
+
+  /// Sends a push notification to the project owner (if they're a
+  /// registered user with a device token) when [project] has just been
+  /// completed by its assignee.
+  Future<void> _notifyOwnerOfCompletion(
+    Session session,
+    Project project,
+  ) async {
+    final ownerContact = await Contact.db.findById(session, project.ownerId);
+    if (ownerContact?.registeredUserId == null) return;
+
+    final ownerProfile = await AppUserData.db.findFirstRow(
+      session,
+      where: (t) => t.authUserId.equals(ownerContact!.registeredUserId!),
+    );
+    if (ownerProfile == null) return;
+
+    final assigneeContact = await Contact.db.findById(
+      session,
+      project.assigneeId,
+    );
+
+    await PushNotificationService.sendToDevice(
+      session,
+      deviceToken: ownerProfile.deviceToken,
+      title: 'Task list completed',
+      body:
+          '${assigneeContact?.name ?? 'Your assignee'} completed "${project.title}"',
+      data: {'projectId': project.id.toString(), 'type': 'project_completed'},
+    );
   }
 
   /// Allows explicit update of project status.

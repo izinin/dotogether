@@ -92,4 +92,32 @@ class UserEndpoint extends Endpoint {
 
     return result;
   }
+
+  /// Updates only the current user's push notification device token (FCM).
+  /// Lighter-weight than [updateProfile] since it doesn't require
+  /// phoneNumber/displayName, so it can be called right after the app
+  /// obtains or refreshes its token without needing the full profile.
+  Future<void> updateDeviceToken(
+    Session session, {
+    required String deviceToken,
+  }) async {
+    final authUserId = session.authenticated?.authUserId;
+    if (authUserId == null) {
+      throw StateError('User is not authenticated');
+    }
+
+    final existing = await AppUserData.db.findFirstRow(
+      session,
+      where: (t) => t.authUserId.equals(authUserId),
+    );
+    if (existing == null) return;
+
+    await AppUserData.db.updateRow(
+      session,
+      existing.copyWith(
+        deviceToken: deviceToken.trim(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+  }
 }
