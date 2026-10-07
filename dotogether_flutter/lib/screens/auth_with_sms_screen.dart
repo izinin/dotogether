@@ -13,8 +13,7 @@ class AuthWithSmsScreen extends StatefulWidget {
 
 class _AuthWithSmsScreenState extends State<AuthWithSmsScreen> {
   final TextEditingController _phoneController = TextEditingController(
-    text: "+358",
-    // text: "+358442023855",
+    text: "+",
   ); // Pre-filled from screenshot
   final TextEditingController _codeController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();

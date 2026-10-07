@@ -149,14 +149,14 @@ class _DoTogetherAppState extends State<DoTogetherApp> {
         // Manually build visual overlay banner since Android suppresses it in foreground
         if (notification != null && android != null) {
           AppState.localNotificationsPlugin.show(
-            notification.hashCode,
-            notification.title,
-            notification.body,
-            NotificationDetails(
+            id: notification.hashCode,
+            title: notification.title,
+            body: notification.body,
+            notificationDetails: NotificationDetails(
               android: AndroidNotificationDetails(
                 'high_importance_channel',
                 'High Importance Notifications',
-                'Channel for high importance notifications',
+                channelDescription: 'Channel for high importance notifications',
                 icon: '@mipmap/ic_launcher', // Default system app icon
               ),
             ),

@@ -17,9 +17,9 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 
 # ios versioning follows the format CFBundleShortVersionString (version) and CFBundleVersion (build number)
-# version: 1.0.0+3
+version: 1.0.0+4
 # android
-version: 1.0.0+16
+# version: 1.0.0+17
 
 environment:
   sdk: '^3.12.2'
