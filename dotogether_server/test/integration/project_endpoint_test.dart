@@ -28,6 +28,17 @@ void main() {
 
     setUp(() async {
       final session = sessionBuilder.build();
+      await ChecklistItem.db.deleteWhere(
+        session,
+        where: (t) => Constant.bool(true),
+      );
+      await Project.db.deleteWhere(session, where: (t) => Constant.bool(true));
+      await Contact.db.deleteWhere(session, where: (t) => Constant.bool(true));
+      await AppUserData.db.deleteWhere(
+        session,
+        where: (t) => Constant.bool(true),
+      );
+
       // Ensure AuthUser rows exist for user1 and user2
       final existing1 = await AuthUser.db.findById(
         session,
@@ -82,7 +93,9 @@ void main() {
         expect(project.checklistItems, hasLength(3));
 
         // User 1 sees it under created projects
-        final created = await endpoints.project.getCreatedProjects(authedUser1);
+        final created = await endpoints.project
+            .getCreatedProjects(authedUser1)
+            .first;
         expect(created, hasLength(1));
         expect(created.first.title, 'Launch MVP');
 
@@ -140,9 +153,9 @@ void main() {
         );
 
         // User 2 should see this under received projects
-        final received = await endpoints.project.getReceivedProjects(
-          authedUser2,
-        );
+        final received = await endpoints.project
+            .getReceivedProjects(authedUser2)
+            .first;
         expect(received, hasLength(1));
         expect(received.first.title, 'Review PR');
         expect(
@@ -252,5 +265,62 @@ void main() {
         expect(phones, isNot(contains('+15551110000')));
       },
     );
-  });
+
+    test(
+      'when checklist item is toggled then getCreatedProjects and getReceivedProjects streams emit updated project list',
+      () async {
+        await endpoints.user.updateProfile(
+          authedUser1,
+          phoneNumber: '+15551112222',
+          displayName: 'User One',
+        );
+        await endpoints.user.updateProfile(
+          authedUser2,
+          phoneNumber: '+15553334444',
+          displayName: 'User Two',
+        );
+
+        // User 1 listens to created projects stream
+        final createdStream = endpoints.project.getCreatedProjects(authedUser1);
+        // User 2 listens to received projects stream
+        final receivedStream = endpoints.project.getReceivedProjects(
+          authedUser2,
+        );
+
+        await flushEventQueue();
+
+        // Create project
+        final project = await endpoints.project.createProject(
+          authedUser1,
+          title: 'Realtime Task',
+          description: 'Streaming test',
+          assigneeName: 'User Two',
+          assigneePhone: '+15553334444',
+          checklistTitles: ['Item A'],
+        );
+
+        // Toggle checklist item
+        final itemId = project.checklistItems!.first.id!;
+        await endpoints.project.toggleChecklistItem(
+          authedUser2,
+          itemId: itemId,
+          isCompleted: true,
+        );
+
+        // Verify createdStream received initial, create, and toggle emissions
+        final createdEmissions = await createdStream.take(3).toList();
+        expect(createdEmissions.first, isEmpty);
+        expect(createdEmissions[1].first.title, 'Realtime Task');
+        expect(createdEmissions[1].first.overallStatus, 'pending');
+        expect(createdEmissions[2].first.overallStatus, 'completed');
+
+        // Verify receivedStream received initial, create, and toggle emissions
+        final receivedEmissions = await receivedStream.take(3).toList();
+        expect(receivedEmissions.first, isEmpty);
+        expect(receivedEmissions[1].first.title, 'Realtime Task');
+        expect(receivedEmissions[1].first.overallStatus, 'pending');
+        expect(receivedEmissions[2].first.overallStatus, 'completed');
+      },
+    );
+  }, rollbackDatabase: RollbackDatabase.disabled);
 }

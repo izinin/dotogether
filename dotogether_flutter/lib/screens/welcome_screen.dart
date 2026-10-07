@@ -13,7 +13,6 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
-
   void _handleTutorial() {
     debugPrint('Starting tutorial in demo mode.');
     final appState = Provider.of<AppState>(context, listen: false);

@@ -137,7 +137,9 @@ class ProjectsListScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isReceivedMode ? project.owner?.name ?? '' : project.assignee?.name ?? '',
+                    isReceivedMode
+                        ? project.owner?.name ?? ''
+                        : project.assignee?.name ?? '',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,

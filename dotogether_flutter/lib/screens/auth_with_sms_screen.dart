@@ -155,7 +155,6 @@ class _AuthWithSmsScreenState extends State<AuthWithSmsScreen> {
                                               _phoneController.text;
                                         });
                                         if (_formKey.currentState!.validate()) {
-                                          // appState.testSignIn(
                                           appState.sendSmsCode(
                                             _phoneController.text,
                                           );

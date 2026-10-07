@@ -811,64 +811,68 @@ class _ProjectEndpoint {
     });
   }
 
-  _ida.Future<List<_i4y9nq59.Project>> getCreatedProjects(
+  _ida.Stream<List<_i4y9nq59.Project>> getCreatedProjects(
     _ist.TestSessionBuilder sessionBuilder,
-  ) async {
-    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'project',
-            method: 'getCreatedProjects',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'project',
-          methodName: 'getCreatedProjects',
-          parameters: _ist.testObjectToJson({}),
-          serializationManager: _serializationManager,
+  ) {
+    var _localTestStreamManager =
+        _ist.TestStreamManager<List<_i4y9nq59.Project>>();
+    _ist.callStreamFunctionAndHandleExceptions(
+      () async {
+        var _localUniqueSession =
+            (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+              endpoint: 'project',
+              method: 'getCreatedProjects',
+            );
+        var _localCallContext = await _endpointDispatch
+            .getMethodStreamCallContext(
+              createSessionCallback: (_) => _localUniqueSession,
+              endpointPath: 'project',
+              methodName: 'getCreatedProjects',
+              arguments: {},
+              requestedInputStreams: [],
+              serializationManager: _serializationManager,
+            );
+        await _localTestStreamManager.callStreamMethod(
+          _localCallContext,
+          _localUniqueSession,
+          {},
         );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _ida.Future<List<_i4y9nq59.Project>>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
+      },
+      _localTestStreamManager.outputStreamController,
+    );
+    return _localTestStreamManager.outputStreamController.stream;
   }
 
-  _ida.Future<List<_i4y9nq59.Project>> getReceivedProjects(
+  _ida.Stream<List<_i4y9nq59.Project>> getReceivedProjects(
     _ist.TestSessionBuilder sessionBuilder,
-  ) async {
-    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'project',
-            method: 'getReceivedProjects',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'project',
-          methodName: 'getReceivedProjects',
-          parameters: _ist.testObjectToJson({}),
-          serializationManager: _serializationManager,
+  ) {
+    var _localTestStreamManager =
+        _ist.TestStreamManager<List<_i4y9nq59.Project>>();
+    _ist.callStreamFunctionAndHandleExceptions(
+      () async {
+        var _localUniqueSession =
+            (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+              endpoint: 'project',
+              method: 'getReceivedProjects',
+            );
+        var _localCallContext = await _endpointDispatch
+            .getMethodStreamCallContext(
+              createSessionCallback: (_) => _localUniqueSession,
+              endpointPath: 'project',
+              methodName: 'getReceivedProjects',
+              arguments: {},
+              requestedInputStreams: [],
+              serializationManager: _serializationManager,
+            );
+        await _localTestStreamManager.callStreamMethod(
+          _localCallContext,
+          _localUniqueSession,
+          {},
         );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _ida.Future<List<_i4y9nq59.Project>>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
+      },
+      _localTestStreamManager.outputStreamController,
+    );
+    return _localTestStreamManager.outputStreamController.stream;
   }
 
   _ida.Future<_i4y9nq59.Project?> getProjectDetails(

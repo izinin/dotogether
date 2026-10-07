@@ -81,13 +81,39 @@ class UserEndpoint extends Endpoint {
       where: (t) => t.phoneNumber.equals(phoneNumber),
     );
     for (var contact in contactsToUpdate) {
-      await Contact.db.updateRow(
+      final updatedContact = await Contact.db.updateRow(
         session,
         contact.copyWith(
           isRegistered: true,
           registeredUserId: authUserId,
         ),
       );
+
+      // Notify user channels about projects involving this contact
+      final relatedProjects = await Project.db.find(
+        session,
+        where: (t) =>
+            t.ownerId.equals(contact.id!) | t.assigneeId.equals(contact.id!),
+        include: Project.include(
+          owner: Contact.include(),
+          assignee: Contact.include(),
+          checklistItems: ChecklistItem.includeList(),
+        ),
+      );
+      for (var project in relatedProjects) {
+        final fullProject = project.copyWith(
+          owner: project.ownerId == updatedContact.id
+              ? updatedContact
+              : project.owner,
+          assignee: project.assigneeId == updatedContact.id
+              ? updatedContact
+              : project.assignee,
+        );
+        await session.messages.postMessage(
+          'user_projects_$authUserId',
+          fullProject,
+        );
+      }
     }
 
     return result;

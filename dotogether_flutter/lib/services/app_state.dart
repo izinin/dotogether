@@ -9,20 +9,13 @@ import 'package:recaptcha_enterprise_flutter/recaptcha_client.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../utils/phone_number_utility.dart';
 import '../client.dart';
+import 'bypass_sms_verification.dart';
 import 'mock_data.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AppState extends ChangeNotifier {
-  /// Predefined phone numbers that, when entered in non-demo mode, skip real
-  /// SMS verification and go straight to the user name input step. Useful
-  /// for manual/automated testing without needing a real SMS to arrive.
-  static const List<String> predefinedTestPhoneNumbers = [
-    '+35811111111',
-    '+35822222222',
-  ];
-
   // 1. Background message handler
   // This MUST be a top-level, global function annotated with @pragma('vm:entry-point')
   @pragma('vm:entry-point')
@@ -55,6 +48,8 @@ class AppState extends ChangeNotifier {
 
   List<Project> _createdProjects = [];
   List<Project> _receivedProjects = [];
+  StreamSubscription<List<Project>>? _createdProjectsSubscription;
+  StreamSubscription<List<Project>>? _receivedProjectsSubscription;
   List<Project> get createdProjects =>
       _mockData.isDemoMode ? _mockData.createdProjects : _createdProjects;
   List<Project> get receivedProjects =>
@@ -243,33 +238,59 @@ class AppState extends ChangeNotifier {
   }
 
   /// Refresh the created/received project lists from the appropriate source:
-  /// the local mock data in Demo Mode, or the real server for authenticated
+  /// the local mock data in Demo Mode, or subscribe to real-time streams for authenticated
   /// (non-demo) users.
   Future<void> _refreshProjects() async {
     if (_mockData.isDemoMode) {
+      _cancelProjectSubscriptions();
       _mockData.updateMockStream();
     } else {
-      await _loadProjectsFromServer();
+      _subscribeToProjects();
     }
   }
 
-  /// Fetch the real created/received projects from the Serverpod backend.
-  Future<void> _loadProjectsFromServer() async {
+  void _cancelProjectSubscriptions() {
+    _createdProjectsSubscription?.cancel();
+    _createdProjectsSubscription = null;
+    _receivedProjectsSubscription?.cancel();
+    _receivedProjectsSubscription = null;
+  }
+
+  /// Subscribe to real-time created and received projects from the Serverpod backend.
+  void _subscribeToProjects() {
+    _cancelProjectSubscriptions();
+    if (!client.auth.isAuthenticated) return;
+
     try {
-      final results = await Future.wait([
-        client.project.getCreatedProjects(),
-        client.project.getReceivedProjects(),
-      ]);
-      _createdProjects = results[0];
-      _receivedProjects = results[1];
-      notifyListeners();
+      _createdProjectsSubscription = client.project.getCreatedProjects().listen(
+        (projects) {
+          _createdProjects = projects;
+          notifyListeners();
+        },
+        onError: (e) {
+          debugPrint('Error in created projects stream: $e');
+        },
+      );
+
+      _receivedProjectsSubscription = client.project
+          .getReceivedProjects()
+          .listen(
+            (projects) {
+              _receivedProjects = projects;
+              notifyListeners();
+            },
+            onError: (e) {
+              debugPrint('Error in received projects stream: $e');
+            },
+          );
     } catch (e) {
-      debugPrint('Error loading projects from server: $e');
+      debugPrint('Error subscribing to projects from server: $e');
     }
   }
 
   /// Sign Out
   Future<void> signOut() async {
+    _cancelProjectSubscriptions();
     try {
       if (client.auth.isAuthenticated) {
         await client.auth.signOutDevice();
@@ -302,8 +323,19 @@ class AppState extends ChangeNotifier {
     // Predefined test phone numbers bypass real SMS verification entirely
     // (in non-demo mode) and jump straight to the user name input step.
     if (!_mockData.isDemoMode &&
-        predefinedTestPhoneNumbers.contains(_registrationPhone)) {
-      await _signInWithPredefinedTestPhoneNumber(_registrationPhone);
+        BypassSmsVerification.isBypassedPhoneNumber(_registrationPhone)) {
+      await BypassSmsVerification.signInWithPredefinedTestPhoneNumber(
+        _registrationPhone,
+      );
+      try {
+        final profile = await client.user.getProfile();
+        _userName = profile?.displayName ?? '';
+      } catch (e) {
+        debugPrint('Error fetching user profile: $e');
+      }
+      _isLoading = false;
+      _registrationStep = 4;
+      notifyListeners();
       return;
     }
 
@@ -360,68 +392,6 @@ class AppState extends ChangeNotifier {
       notifyListeners();
       return false;
     }
-  }
-
-  /// Sign in a predefined test phone number without going through real
-  /// Firebase SMS verification. Authenticates directly with the Serverpod
-  /// backend and moves straight to the user name input step (step 4), the
-  /// same place real users land after successfully verifying their SMS code.
-  Future<void> _signInWithPredefinedTestPhoneNumber(
-    String normalizedPhone,
-  ) async {
-    _currentPhoneNumber = normalizedPhone;
-
-    final authSuccess = await client.phoneAuth.authenticateWithFirebasePhone(
-      PhoneAuthPayload(
-        phoneNumber: normalizedPhone,
-        displayName: 'please fill your name',
-        email: 'please add your email',
-        photoUrl: 'please add your photo',
-      ),
-    );
-
-    // https://docs.serverpod.dev/next/concepts/authentication/basics#register-authentication
-    await client.auth.updateSignedInUser(authSuccess);
-    if (client.auth.isAuthenticated) {
-      debugPrint('User is authenticated with Serverpod.');
-    }
-
-    // Prefill the name step with whatever name is already stored, same as
-    // the real SMS verification success path.
-    try {
-      final profile = await client.user.getProfile();
-      _userName = profile?.displayName ?? '';
-    } catch (e) {
-      debugPrint('Error fetching user profile: $e');
-    }
-
-    _isLoading = false;
-    _registrationStep = 4;
-    notifyListeners();
-  }
-
-  Future<void> testSignIn(String phoneNumber) async {
-    final authSuccess = await client.phoneAuth.authenticateWithFirebasePhone(
-      PhoneAuthPayload(
-        phoneNumber: phoneNumber,
-        displayName: 'fake name',
-        email: 'fake email',
-        photoUrl: 'fake photo',
-      ),
-    );
-
-    // https://docs.serverpod.dev/next/concepts/authentication/basics#register-authentication
-    await client.auth.updateSignedInUser(authSuccess);
-    if (client.auth.isAuthenticated) {
-      debugPrint('User is authenticated with Serverpod.');
-    }
-
-    var profile = await client.user.getProfile();
-    debugPrint('Fetched user profile: $profile');
-
-    _isLoading = false;
-    _registrationStep = 2;
-    notifyListeners();
   }
 
   Future<void> _onAuthSuccess() async {
@@ -520,44 +490,16 @@ class AppState extends ChangeNotifier {
 
     try {
       _contacts = await client.contact.getContacts();
-      _contacts = [..._contacts, ..._simulatedTestContacts()];
+      _contacts = [
+        ..._contacts,
+        ...BypassSmsVerification.getSimulatedTestContacts(_currentPhoneNumber),
+      ];
     } catch (e) {
       debugPrint('Error loading contacts: $e');
     }
 
     _isLoadingContacts = false;
     notifyListeners();
-  }
-
-  /// When the current user is signed in with one of the
-  /// [predefinedTestPhoneNumbers], surface the *other* predefined numbers
-  /// as "simulated contact" entries in the contact list, so project
-  /// creation can be exercised end-to-end without needing several real
-  /// phone numbers to test with.
-  List<Contact> _simulatedTestContacts() {
-    final currentPhone = _currentPhoneNumber;
-    if (currentPhone == null ||
-        !predefinedTestPhoneNumbers.contains(currentPhone)) {
-      return [];
-    }
-
-    final existingNumbers = _contacts.map((c) => c.phoneNumber).toSet();
-    final ownerUuid = UuidValue.fromString(
-      _currentUserUid ?? '00000000-0000-0000-0000-000000000000',
-    );
-
-    return predefinedTestPhoneNumbers
-        .where(
-          (phone) => phone != currentPhone && !existingNumbers.contains(phone),
-        )
-        .map(
-          (phone) => Contact(
-            ownerId: ownerUuid,
-            name: 'simulated contact',
-            phoneNumber: phone,
-          ),
-        )
-        .toList();
   }
 
   // ================= COLLABORATIVE taskList OPERATIONS =================
@@ -602,7 +544,6 @@ class AppState extends ChangeNotifier {
       } catch (e) {
         debugPrint('Error creating project on server: $e');
       }
-      await _loadProjectsFromServer();
     }
 
     _isLoading = false;
@@ -645,7 +586,6 @@ class AppState extends ChangeNotifier {
       } catch (e) {
         debugPrint('Error toggling checklist item on server: $e');
       }
-      await _loadProjectsFromServer();
     }
     notifyListeners();
   }

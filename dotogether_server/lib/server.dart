@@ -24,7 +24,7 @@ void run(List<String> args) async {
         issuer: 'dotogether',
       ),
     ],
-    identityProviderBuilders: [ ],
+    identityProviderBuilders: [],
   );
 
   // Setup a default page at the web root.

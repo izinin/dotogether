@@ -116,18 +116,45 @@ class ProjectEndpoint extends Endpoint {
       );
     }
 
-    return project.copyWith(
+    final createdProject = project.copyWith(
       owner: ownerContact,
       assignee: assigneeContact,
       checklistItems: insertedItems,
     );
+
+    // Broadcast project update in real-time to owner and assignee channels
+    await broadcastProjectUpdate(session, createdProject);
+
+    return createdProject;
   }
 
-  /// Returns all projects created by the current user (Task Owner).
-  Future<List<Project>> getCreatedProjects(Session session) async {
-    final authUserId = session.authenticated?.authUserId;
-    if (authUserId == null) return [];
+  static String _userChannel(UuidValue authUserId) =>
+      'user_projects_$authUserId';
+  static String _projectChannel(int projectId) => 'project_$projectId';
 
+  /// Returns a real-time stream of all projects created by the current user (Task Owner).
+  /// Emits the current list immediately, and subsequent updates whenever a project is created or updated.
+  Stream<List<Project>> getCreatedProjects(Session session) async* {
+    final authUserId = session.authenticated?.authUserId;
+    if (authUserId == null) {
+      throw StateError('User is not authenticated');
+    }
+
+    final updateStream = session.messages.createStream<Project>(
+      _userChannel(authUserId),
+    );
+
+    yield await _fetchCreatedProjects(session, authUserId);
+
+    await for (final _ in updateStream) {
+      yield await _fetchCreatedProjects(session, authUserId);
+    }
+  }
+
+  Future<List<Project>> _fetchCreatedProjects(
+    Session session,
+    UuidValue authUserId,
+  ) async {
     return await Project.db.find(
       session,
       where: (t) => t.owner.registeredUserId.equals(authUserId),
@@ -140,13 +167,31 @@ class ProjectEndpoint extends Endpoint {
     );
   }
 
-  /// Returns all projects assigned to the current user (Task Executor).
+  /// Returns a real-time stream of all projects assigned to the current user (Task Executor).
   /// Matches either by the assignee Contact's registeredUserId or by the
   /// user's registered phone number.
-  Future<List<Project>> getReceivedProjects(Session session) async {
+  /// Emits the current list immediately, and subsequent updates whenever projects change.
+  Stream<List<Project>> getReceivedProjects(Session session) async* {
     final authUserId = session.authenticated?.authUserId;
-    if (authUserId == null) return [];
+    if (authUserId == null) {
+      throw StateError('User is not authenticated');
+    }
 
+    final updateStream = session.messages.createStream<Project>(
+      _userChannel(authUserId),
+    );
+
+    yield await _fetchReceivedProjects(session, authUserId);
+
+    await for (final _ in updateStream) {
+      yield await _fetchReceivedProjects(session, authUserId);
+    }
+  }
+
+  Future<List<Project>> _fetchReceivedProjects(
+    Session session,
+    UuidValue authUserId,
+  ) async {
     final userProfile = await AppUserData.db.findFirstRow(
       session,
       where: (t) => t.authUserId.equals(authUserId),
@@ -196,6 +241,35 @@ class ProjectEndpoint extends Endpoint {
     );
   }
 
+  /// Broadcasts a project update to its dedicated project channel and to the owner and assignee user channels.
+  static Future<void> broadcastProjectUpdate(
+    Session session,
+    Project project,
+  ) async {
+    if (project.id != null) {
+      await session.messages.postMessage(
+        _projectChannel(project.id!),
+        project,
+      );
+    }
+
+    final ownerUserId = project.owner?.registeredUserId;
+    if (ownerUserId != null) {
+      await session.messages.postMessage(
+        _userChannel(ownerUserId),
+        project,
+      );
+    }
+
+    final assigneeUserId = project.assignee?.registeredUserId;
+    if (assigneeUserId != null && assigneeUserId != ownerUserId) {
+      await session.messages.postMessage(
+        _userChannel(assigneeUserId),
+        project,
+      );
+    }
+  }
+
   /// Toggles completion of a checklist item and automatically recalculates
   /// the overall project completion percentage and overallStatus ('pending', 'in_progress', 'completed').
   Future<Project> toggleChecklistItem(
@@ -234,7 +308,14 @@ class ProjectEndpoint extends Endpoint {
       newStatus = 'in_progress';
     }
 
-    final project = await Project.db.findById(session, item.projectId);
+    final project = await Project.db.findById(
+      session,
+      item.projectId,
+      include: Project.include(
+        owner: Contact.include(),
+        assignee: Contact.include(),
+      ),
+    );
     if (project == null) {
       throw ArgumentError('Project ${item.projectId} not found');
     }
@@ -249,7 +330,16 @@ class ProjectEndpoint extends Endpoint {
       await _notifyOwnerOfCompletion(session, updatedProject);
     }
 
-    return updatedProject.copyWith(checklistItems: allItems);
+    final fullUpdatedProject = updatedProject.copyWith(
+      checklistItems: allItems,
+      owner: project.owner,
+      assignee: project.assignee,
+    );
+
+    // Broadcast project update in real-time
+    await broadcastProjectUpdate(session, fullUpdatedProject);
+
+    return fullUpdatedProject;
   }
 
   /// Sends a push notification to the project owner (if they're a
@@ -289,15 +379,36 @@ class ProjectEndpoint extends Endpoint {
     required int projectId,
     required String status,
   }) async {
-    final project = await Project.db.findById(session, projectId);
+    final project = await Project.db.findById(
+      session,
+      projectId,
+      include: Project.include(
+        owner: Contact.include(),
+        assignee: Contact.include(),
+        checklistItems: ChecklistItem.includeList(
+          orderBy: (t) => t.sortOrder,
+        ),
+      ),
+    );
     if (project == null) {
       throw ArgumentError('Project $projectId not found');
     }
 
-    return await Project.db.updateRow(
+    final updatedProject = await Project.db.updateRow(
       session,
       project.copyWith(overallStatus: status),
     );
+
+    final fullProject = updatedProject.copyWith(
+      owner: project.owner,
+      assignee: project.assignee,
+      checklistItems: project.checklistItems,
+    );
+
+    // Broadcast status change in real-time
+    await broadcastProjectUpdate(session, fullProject);
+
+    return fullProject;
   }
 
   /// Finds the Contact row matching [phone] in the global Contact registry,
