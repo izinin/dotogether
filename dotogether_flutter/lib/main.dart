@@ -143,6 +143,9 @@ class _DoTogetherAppState extends State<DoTogetherApp> {
 
       // 4. FOREGROUND STREAM LISTENER (App is wide open and active)
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        if (mounted) {
+          context.read<AppState>().refreshProjects();
+        }
         RemoteNotification? notification = message.notification;
         AndroidNotification? android = message.notification?.android;
 
@@ -173,6 +176,9 @@ class _DoTogetherAppState extends State<DoTogetherApp> {
 
       // 6. BACKGROUND STATE INTERACTION (User clicks banner while app is minimized)
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        if (mounted) {
+          context.read<AppState>().refreshProjects();
+        }
         _handleNotificationRouting(message.data);
       });
     }

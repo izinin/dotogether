@@ -38,7 +38,6 @@ class AppState extends ChangeNotifier {
   bool get isLoadingContacts => _isLoadingContacts;
 
   User? _currentUser;
-  String? _currentUserUid;
   String? _currentPhoneNumber;
   bool _isLoading = false;
 
@@ -48,8 +47,6 @@ class AppState extends ChangeNotifier {
 
   List<Project> _createdProjects = [];
   List<Project> _receivedProjects = [];
-  StreamSubscription<List<Project>>? _createdProjectsSubscription;
-  StreamSubscription<List<Project>>? _receivedProjectsSubscription;
   List<Project> get createdProjects =>
       _mockData.isDemoMode ? _mockData.createdProjects : _createdProjects;
   List<Project> get receivedProjects =>
@@ -83,7 +80,6 @@ class AppState extends ChangeNotifier {
   // Getters
   RecaptchaClient get recaptchaClient => _recaptchaClient;
   bool get isDemoMode => _mockData.isDemoMode;
-  String? get currentUserUid => _currentUserUid;
   String? get currentPhoneNumber => _currentPhoneNumber;
   bool get isLoading => _isLoading;
 
@@ -169,7 +165,6 @@ class AppState extends ChangeNotifier {
   @override
   void dispose() {
     client.auth.authInfoListenable.removeListener(_onAuthChanged);
-    _mockData.mockProjectsController.close();
     super.dispose();
   }
 
@@ -179,7 +174,6 @@ class AppState extends ChangeNotifier {
       ensureUserInDatabase();
       _syncDeviceTokenWithServer();
     } else if (!_mockData.isDemoMode) {
-      _currentUserUid = null;
       _currentPhoneNumber = null;
       notifyListeners();
     }
@@ -216,7 +210,11 @@ class AppState extends ChangeNotifier {
       var profile = await client.user.getProfile();
       if (profile == null) {
         debugPrint('User not found in database, inserting new profile...');
-        profile = await client.user.updateProfile();
+        profile = await client.user.updateProfile(
+          phoneNumber: _registrationPhone,
+          deviceToken: _deviceToken,
+          displayName: "unknown",
+        );
         debugPrint('User profile created in database with id: ${profile.id}');
       } else {
         debugPrint(
@@ -224,11 +222,10 @@ class AppState extends ChangeNotifier {
         );
       }
 
-      _currentUserUid = profile.authUserId.toString();
       _currentPhoneNumber = profile.phoneNumber;
       _currentUser = FirebaseAuth.instance.currentUser;
       _userName = profile.displayName;
-      await _refreshProjects();
+      await refreshProjects();
     } catch (e) {
       debugPrint('Error syncing user with database: $e');
     } finally {
@@ -238,68 +235,35 @@ class AppState extends ChangeNotifier {
   }
 
   /// Refresh the created/received project lists from the appropriate source:
-  /// the local mock data in Demo Mode, or subscribe to real-time streams for authenticated
-  /// (non-demo) users.
-  Future<void> _refreshProjects() async {
+  /// the local mock data in Demo Mode, or the Serverpod backend for
+  /// authenticated (non-demo) users.
+  Future<void> refreshProjects() async {
     if (_mockData.isDemoMode) {
-      _cancelProjectSubscriptions();
-      _mockData.updateMockStream();
-    } else {
-      _subscribeToProjects();
+      _mockData.updateMockProjects();
+    } else if (client.auth.isAuthenticated) {
+      try {
+        final results = await Future.wait([
+          client.project.getCreatedProjects(),
+          client.project.getReceivedProjects(),
+        ]);
+        _createdProjects = results[0];
+        _receivedProjects = results[1];
+      } catch (e) {
+        debugPrint('Error loading projects from server: $e');
+      }
     }
-  }
-
-  void _cancelProjectSubscriptions() {
-    _createdProjectsSubscription?.cancel();
-    _createdProjectsSubscription = null;
-    _receivedProjectsSubscription?.cancel();
-    _receivedProjectsSubscription = null;
-  }
-
-  /// Subscribe to real-time created and received projects from the Serverpod backend.
-  void _subscribeToProjects() {
-    _cancelProjectSubscriptions();
-    if (!client.auth.isAuthenticated) return;
-
-    try {
-      _createdProjectsSubscription = client.project.getCreatedProjects().listen(
-        (projects) {
-          _createdProjects = projects;
-          notifyListeners();
-        },
-        onError: (e) {
-          debugPrint('Error in created projects stream: $e');
-        },
-      );
-
-      _receivedProjectsSubscription = client.project
-          .getReceivedProjects()
-          .listen(
-            (projects) {
-              _receivedProjects = projects;
-              notifyListeners();
-            },
-            onError: (e) {
-              debugPrint('Error in received projects stream: $e');
-            },
-          );
-    } catch (e) {
-      debugPrint('Error subscribing to projects from server: $e');
-    }
+    notifyListeners();
   }
 
   /// Sign Out
   Future<void> signOut() async {
-    _cancelProjectSubscriptions();
     try {
-      if (client.auth.isAuthenticated) {
-        await client.auth.signOutDevice();
-      }
+      await FirebaseAuth.instance.signOut();
+      await client.auth.signOutDevice();
     } catch (e) {
       debugPrint('Error signing out of Serverpod: $e');
     }
     _mockData.isDemoMode = false;
-    _currentUserUid = null;
     _currentPhoneNumber = null;
     _createdProjects = [];
     _receivedProjects = [];
@@ -444,6 +408,7 @@ class AppState extends ChangeNotifier {
       await client.user.updateProfile(
         phoneNumber: _currentPhoneNumber,
         displayName: name,
+        deviceToken: _deviceToken,
       );
       _userName = name;
       _registrationStep = 5;
@@ -541,6 +506,7 @@ class AppState extends ChangeNotifier {
           assigneePhone: normalizedPhone,
           checklistTitles: checklistTitles,
         );
+        await refreshProjects();
       } catch (e) {
         debugPrint('Error creating project on server: $e');
       }
@@ -583,6 +549,7 @@ class AppState extends ChangeNotifier {
           itemId: itemId,
           isCompleted: isCompleted,
         );
+        await refreshProjects();
       } catch (e) {
         debugPrint('Error toggling checklist item on server: $e');
       }

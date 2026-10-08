@@ -1,8 +1,6 @@
 class: Contact
 table: contact
 fields:
-  ### User ID of the contact owner
-  ownerId: UuidValue, unique
   ### Contact name from phone book
   name: String
   ### Contact normalized phone number

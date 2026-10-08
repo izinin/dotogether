@@ -11,12 +11,10 @@ class BypassSmsVerification {
     Contact(
       phoneNumber: '+35811111111',
       name: 'Test Contact 1',
-      ownerId: UuidValue.fromString('4a1c78e2-8b9f-4310-a2d6-0e9b4185f20f'),
     ),
     Contact(
       phoneNumber: '+35822222222',
       name: 'Test Contact 2',
-      ownerId: UuidValue.fromString('f2b09341-11e8-46c9-b7e5-523c091ad4d2'),
     ),
   ];
 

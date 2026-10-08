@@ -14,7 +14,7 @@ class ContactEndpoint extends Endpoint {
   /// phone number) and checks which contacts match registered app users.
   /// Existing rows for a phone number are updated in place (name and
   /// registration status) rather than deleted and reinserted, since
-  /// `phoneNumber` and `ownerId` must each be unique and not null.
+  /// `phoneNumber` must be unique.
   Future<List<Contact>> syncContacts(
     Session session,
     List<Contact> inputContacts,
@@ -49,10 +49,6 @@ class ContactEndpoint extends Endpoint {
           await Contact.db.insertRow(
             session,
             Contact(
-              // The owning user's own phone number keeps their authUserId
-              // as the contact's ownerId; any other phone number not yet
-              // known to the registry is assigned a fresh, unique ownerId.
-              ownerId: registeredUserId ?? const Uuid().v4obj(),
               name: cleanName,
               phoneNumber: cleanPhone,
               isRegistered: isRegistered,
@@ -111,7 +107,6 @@ class ContactEndpoint extends Endpoint {
       final cols = row.toColumnMap();
       return Contact(
         id: _asInt(cols['id']),
-        ownerId: _asUuid(cols['ownerId'])!,
         name: cols['name'] as String,
         phoneNumber: cols['phoneNumber'] as String,
         isRegistered: cols['isRegistered'] as bool,

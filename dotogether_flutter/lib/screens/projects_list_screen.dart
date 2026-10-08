@@ -40,42 +40,57 @@ class ProjectsListScreen extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: projects.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+      body: RefreshIndicator(
+        onRefresh: appState.refreshProjects,
+        child: projects.isEmpty
+            ? ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 children: [
-                  Icon(
-                    isReceivedMode
-                        ? Icons.assignment_outlined
-                        : Icons.assignment_turned_in_outlined,
-                    size: 64,
-                    color: Colors.grey.shade300,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    isReceivedMode
-                        ? 'You do not have any tasks assigned to you.'
-                        : 'You have not created any projects yet.',
-                    style: TextStyle(color: Colors.grey.shade500, fontSize: 15),
-                    textAlign: TextAlign.center,
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.6,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            isReceivedMode
+                                ? Icons.assignment_outlined
+                                : Icons.assignment_turned_in_outlined,
+                            size: 64,
+                            color: Colors.grey.shade300,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            isReceivedMode
+                                ? 'You do not have any tasks assigned to you.'
+                                : 'You have not created any projects yet.',
+                            style: TextStyle(
+                              color: Colors.grey.shade500,
+                              fontSize: 15,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
+              )
+            : ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(vertical: 20.0),
+                itemCount: projects.length,
+                itemBuilder: (context, index) {
+                  final project = projects[index];
+                  return _buildProjectTile(
+                    pageTitle,
+                    context,
+                    project,
+                    isReceivedMode,
+                  );
+                },
               ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 20.0),
-              itemCount: projects.length,
-              itemBuilder: (context, index) {
-                final project = projects[index];
-                return _buildProjectTile(
-                  pageTitle,
-                  context,
-                  project,
-                  isReceivedMode,
-                );
-              },
-            ),
+      ),
     );
   }
 

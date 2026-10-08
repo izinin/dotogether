@@ -14,7 +14,7 @@ class ProjectEndpoint extends Endpoint {
   /// assignee Contact is immediately marked as registered.
   ///
   /// Contact rows are shared globally (deduplicated by phone number, which
-  /// along with `ownerId` must be unique): a phone number that is already
+  /// must be unique): a phone number that is already
   /// known (e.g. as someone else's assignee, or as that person's own
   /// registered profile) is reused rather than re-inserted.
   Future<Project> createProject(
@@ -56,7 +56,6 @@ class ProjectEndpoint extends Endpoint {
       name: userProfile.displayName,
       isRegistered: true,
       registeredUserId: authUserId,
-      ownerIdForNew: authUserId,
     );
 
     // Find or create the Contact record representing the assignee.
@@ -66,10 +65,6 @@ class ProjectEndpoint extends Endpoint {
       name: cleanAssigneeName,
       isRegistered: assigneeProfile != null,
       registeredUserId: assigneeProfile?.authUserId,
-      // If the assignee is already a registered user, their own authUserId
-      // is used as the (unique) ownerId; otherwise mint a fresh one, since
-      // `ownerId` must be unique and not null across all Contact rows.
-      ownerIdForNew: assigneeProfile?.authUserId ?? const Uuid().v4obj(),
     );
 
     // Create project referencing the owner's and assignee's Contact records
@@ -106,7 +101,7 @@ class ProjectEndpoint extends Endpoint {
     }
 
     // Notify the assignee if they're a registered user with a device token.
-    if (assigneeProfile != null) {
+    if (assigneeProfile != null && assigneeProfile.deviceToken != null) {
       await PushNotificationService.sendToDevice(
         session,
         deviceToken: assigneeProfile.deviceToken,
@@ -122,33 +117,16 @@ class ProjectEndpoint extends Endpoint {
       checklistItems: insertedItems,
     );
 
-    // Broadcast project update in real-time to owner and assignee channels
-    await broadcastProjectUpdate(session, createdProject);
-
     return createdProject;
   }
 
-  static String _userChannel(UuidValue authUserId) =>
-      'user_projects_$authUserId';
-  static String _projectChannel(int projectId) => 'project_$projectId';
-
-  /// Returns a real-time stream of all projects created by the current user (Task Owner).
-  /// Emits the current list immediately, and subsequent updates whenever a project is created or updated.
-  Stream<List<Project>> getCreatedProjects(Session session) async* {
+  /// Returns all projects created by the current user (Task Owner).
+  Future<List<Project>> getCreatedProjects(Session session) async {
     final authUserId = session.authenticated?.authUserId;
     if (authUserId == null) {
       throw StateError('User is not authenticated');
     }
-
-    final updateStream = session.messages.createStream<Project>(
-      _userChannel(authUserId),
-    );
-
-    yield await _fetchCreatedProjects(session, authUserId);
-
-    await for (final _ in updateStream) {
-      yield await _fetchCreatedProjects(session, authUserId);
-    }
+    return await _fetchCreatedProjects(session, authUserId);
   }
 
   Future<List<Project>> _fetchCreatedProjects(
@@ -167,25 +145,15 @@ class ProjectEndpoint extends Endpoint {
     );
   }
 
-  /// Returns a real-time stream of all projects assigned to the current user (Task Executor).
+  /// Returns all projects assigned to the current user (Task Executor).
   /// Matches either by the assignee Contact's registeredUserId or by the
   /// user's registered phone number.
-  /// Emits the current list immediately, and subsequent updates whenever projects change.
-  Stream<List<Project>> getReceivedProjects(Session session) async* {
+  Future<List<Project>> getReceivedProjects(Session session) async {
     final authUserId = session.authenticated?.authUserId;
     if (authUserId == null) {
       throw StateError('User is not authenticated');
     }
-
-    final updateStream = session.messages.createStream<Project>(
-      _userChannel(authUserId),
-    );
-
-    yield await _fetchReceivedProjects(session, authUserId);
-
-    await for (final _ in updateStream) {
-      yield await _fetchReceivedProjects(session, authUserId);
-    }
+    return await _fetchReceivedProjects(session, authUserId);
   }
 
   Future<List<Project>> _fetchReceivedProjects(
@@ -239,35 +207,6 @@ class ProjectEndpoint extends Endpoint {
         ),
       ),
     );
-  }
-
-  /// Broadcasts a project update to its dedicated project channel and to the owner and assignee user channels.
-  static Future<void> broadcastProjectUpdate(
-    Session session,
-    Project project,
-  ) async {
-    if (project.id != null) {
-      await session.messages.postMessage(
-        _projectChannel(project.id!),
-        project,
-      );
-    }
-
-    final ownerUserId = project.owner?.registeredUserId;
-    if (ownerUserId != null) {
-      await session.messages.postMessage(
-        _userChannel(ownerUserId),
-        project,
-      );
-    }
-
-    final assigneeUserId = project.assignee?.registeredUserId;
-    if (assigneeUserId != null && assigneeUserId != ownerUserId) {
-      await session.messages.postMessage(
-        _userChannel(assigneeUserId),
-        project,
-      );
-    }
   }
 
   /// Toggles completion of a checklist item and automatically recalculates
@@ -336,9 +275,6 @@ class ProjectEndpoint extends Endpoint {
       assignee: project.assignee,
     );
 
-    // Broadcast project update in real-time
-    await broadcastProjectUpdate(session, fullUpdatedProject);
-
     return fullUpdatedProject;
   }
 
@@ -405,24 +341,19 @@ class ProjectEndpoint extends Endpoint {
       checklistItems: project.checklistItems,
     );
 
-    // Broadcast status change in real-time
-    await broadcastProjectUpdate(session, fullProject);
-
     return fullProject;
   }
 
   /// Finds the Contact row matching [phone] in the global Contact registry,
   /// updating its name if it changed, or creates a new one with
-  /// [ownerIdForNew] if no row for that phone number exists yet. Contact
-  /// rows are shared across all users (deduplicated by phone number), so an
-  /// existing row's `ownerId` is never reassigned.
+  /// a new one if no row for that phone number exists yet. Contact
+  /// rows are shared across all users (deduplicated by phone number).
   Future<Contact> _findOrCreateContact(
     Session session, {
     required String phone,
     required String name,
     required bool isRegistered,
     required UuidValue? registeredUserId,
-    required UuidValue ownerIdForNew,
   }) async {
     final existing = await Contact.db.findFirstRow(
       session,
@@ -432,7 +363,6 @@ class ProjectEndpoint extends Endpoint {
       return await Contact.db.insertRow(
         session,
         Contact(
-          ownerId: ownerIdForNew,
           name: name,
           phoneNumber: phone,
           isRegistered: isRegistered,

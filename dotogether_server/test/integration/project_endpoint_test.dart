@@ -93,9 +93,7 @@ void main() {
         expect(project.checklistItems, hasLength(3));
 
         // User 1 sees it under created projects
-        final created = await endpoints.project
-            .getCreatedProjects(authedUser1)
-            .first;
+        final created = await endpoints.project.getCreatedProjects(authedUser1);
         expect(created, hasLength(1));
         expect(created.first.title, 'Launch MVP');
 
@@ -153,9 +151,9 @@ void main() {
         );
 
         // User 2 should see this under received projects
-        final received = await endpoints.project
-            .getReceivedProjects(authedUser2)
-            .first;
+        final received = await endpoints.project.getReceivedProjects(
+          authedUser2,
+        );
         expect(received, hasLength(1));
         expect(received.first.title, 'Review PR');
         expect(
@@ -177,13 +175,11 @@ void main() {
         authedUser1,
         [
           Contact(
-            ownerId: UuidValue.withValidation(user1Id),
             name: 'Bob',
             phoneNumber: '+15553334444',
             createdAt: DateTime.now(),
           ),
           Contact(
-            ownerId: UuidValue.withValidation(user1Id),
             name: 'Charlie Unregistered',
             phoneNumber: '+15550009999',
             createdAt: DateTime.now(),
@@ -267,7 +263,7 @@ void main() {
     );
 
     test(
-      'when checklist item is toggled then getCreatedProjects and getReceivedProjects streams emit updated project list',
+      'when checklist item is toggled then getCreatedProjects and getReceivedProjects return updated project lists',
       () async {
         await endpoints.user.updateProfile(
           authedUser1,
@@ -280,46 +276,41 @@ void main() {
           displayName: 'User Two',
         );
 
-        // User 1 listens to created projects stream
-        final createdStream = endpoints.project.getCreatedProjects(authedUser1);
-        // User 2 listens to received projects stream
-        final receivedStream = endpoints.project.getReceivedProjects(
-          authedUser2,
+        expect(
+          await endpoints.project.getCreatedProjects(authedUser1),
+          isEmpty,
+        );
+        expect(
+          await endpoints.project.getReceivedProjects(authedUser2),
+          isEmpty,
         );
 
-        await flushEventQueue();
-
-        // Create project
         final project = await endpoints.project.createProject(
           authedUser1,
           title: 'Realtime Task',
-          description: 'Streaming test',
+          description: 'Request/response test',
           assigneeName: 'User Two',
           assigneePhone: '+15553334444',
           checklistTitles: ['Item A'],
         );
 
-        // Toggle checklist item
-        final itemId = project.checklistItems!.first.id!;
+        var created = await endpoints.project.getCreatedProjects(authedUser1);
+        var received = await endpoints.project.getReceivedProjects(authedUser2);
+        expect(created.first.title, 'Realtime Task');
+        expect(created.first.overallStatus, 'pending');
+        expect(received.first.title, 'Realtime Task');
+        expect(received.first.overallStatus, 'pending');
+
         await endpoints.project.toggleChecklistItem(
           authedUser2,
-          itemId: itemId,
+          itemId: project.checklistItems!.first.id!,
           isCompleted: true,
         );
 
-        // Verify createdStream received initial, create, and toggle emissions
-        final createdEmissions = await createdStream.take(3).toList();
-        expect(createdEmissions.first, isEmpty);
-        expect(createdEmissions[1].first.title, 'Realtime Task');
-        expect(createdEmissions[1].first.overallStatus, 'pending');
-        expect(createdEmissions[2].first.overallStatus, 'completed');
-
-        // Verify receivedStream received initial, create, and toggle emissions
-        final receivedEmissions = await receivedStream.take(3).toList();
-        expect(receivedEmissions.first, isEmpty);
-        expect(receivedEmissions[1].first.title, 'Realtime Task');
-        expect(receivedEmissions[1].first.overallStatus, 'pending');
-        expect(receivedEmissions[2].first.overallStatus, 'completed');
+        created = await endpoints.project.getCreatedProjects(authedUser1);
+        received = await endpoints.project.getReceivedProjects(authedUser2);
+        expect(created.first.overallStatus, 'completed');
+        expect(received.first.overallStatus, 'completed');
       },
     );
   }, rollbackDatabase: RollbackDatabase.disabled);
