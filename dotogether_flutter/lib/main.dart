@@ -5,6 +5,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
 import 'services/app_state.dart';
+import 'services/refresh_on_navigation_observer.dart';
 import 'screens/welcome_screen.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 import 'client.dart';
@@ -107,6 +108,9 @@ class DoTogetherApp extends StatefulWidget {
 }
 
 class _DoTogetherAppState extends State<DoTogetherApp> {
+  late final RefreshOnNavigationObserver _navigationObserver =
+      RefreshOnNavigationObserver(context.read<AppState>());
+
   @override
   void initState() {
     super.initState();
@@ -203,6 +207,7 @@ class _DoTogetherAppState extends State<DoTogetherApp> {
       theme: _buildTheme(Brightness.light),
       darkTheme: _buildTheme(Brightness.dark),
       themeMode: ThemeMode.system,
+      navigatorObservers: [_navigationObserver],
       home: (client.auth.isAuthenticated)
           ? const HomeScreen()
           : const WelcomeScreen(),

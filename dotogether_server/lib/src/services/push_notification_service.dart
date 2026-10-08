@@ -43,6 +43,10 @@ class PushNotificationService {
       _app = FirebaseApp.initializeApp(
         options: AppOptions(credential: credential),
       );
+      session.log(
+        'PushNotificationService: "firebaseServiceAccountJson" secret not is initialized successfully.',
+        level: LogLevel.info,
+      );
     } catch (e) {
       session.log(
         'PushNotificationService: failed to initialize Firebase Admin SDK: $e',

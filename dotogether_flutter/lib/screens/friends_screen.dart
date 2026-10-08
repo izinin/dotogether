@@ -20,15 +20,6 @@ class _FriendsScreenState extends State<FriendsScreen> {
   String _searchQuery = "";
 
   @override
-  void initState() {
-    super.initState();
-    // Fetch contacts on screen initialization
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<AppState>(context, listen: false).fetchContacts();
-    });
-  }
-
-  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
