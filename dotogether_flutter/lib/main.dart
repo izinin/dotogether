@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -127,8 +129,26 @@ class _DoTogetherAppState extends State<DoTogetherApp> {
       sound: true,
     );
 
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+    if (settings.authorizationStatus == AuthorizationStatus.authorized ||
+        settings.authorizationStatus == AuthorizationStatus.provisional) {
       debugPrint('User granted messaging authorization.');
+
+      // iOS: show alerts/sounds while the app is in the foreground.
+      await messaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      // iOS: an FCM token can only be issued once the APNs token is available.
+      if (Platform.isIOS || Platform.isMacOS) {
+        String? apnsToken = await messaging.getAPNSToken();
+        for (var i = 0; apnsToken == null && i < 10; i++) {
+          await Future<void>.delayed(const Duration(milliseconds: 500));
+          apnsToken = await messaging.getAPNSToken();
+        }
+        debugPrint('APNs token: ${apnsToken ?? "unavailable"}');
+      }
 
       // 3. Extract the Unique Device Registration Token and persist it to
       // the server so push notifications can target this device. Also
@@ -154,7 +174,7 @@ class _DoTogetherAppState extends State<DoTogetherApp> {
         AndroidNotification? android = message.notification?.android;
 
         // Manually build visual overlay banner since Android suppresses it in foreground
-        if (notification != null && android != null) {
+        if (notification != null && android != null && Platform.isAndroid) {
           AppState.localNotificationsPlugin.show(
             id: notification.hashCode,
             title: notification.title,
