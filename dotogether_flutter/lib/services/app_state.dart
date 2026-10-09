@@ -515,15 +515,13 @@ class AppState extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
 
-    // Prepare SMS body containing tasks summary and Play Store link
-    String tasksSummary = checklistTitles.map((e) => "- [ ] $e").join("\n");
     String smsMessage =
         "Hello $assigneeName!\n"
         "I have created a taskList '$title' for you:\n"
-        "$tasksSummary\n\n"
-        "${description.isNotEmpty ? 'Details: $description\n' : ''}"
-        "Please download the DoTogether app from the Google Play Store to complete these tasks:\n"
-        "https://play.google.com/store/apps/details?id=com.dotogether.app";
+        "${description.isNotEmpty ? 'Details: $description\n' : ''}\n\n"
+        "Could you please complete it at your earliest convenience in DoTogether app? Get it from the Play Store or Apple App Store:\n"
+        "https://play.google.com/store/apps/details?id=com.dotogether.app\n"
+        "https://apps.apple.com/us/app/world-tunes/id1485312499";
 
     return {'recipient': normalizedPhone, 'body': smsMessage};
   }
@@ -562,28 +560,17 @@ class AppState extends ChangeNotifier {
     String recipientPhone,
     String messageBody,
   ) async {
-    final Uri smsUri = Uri(
-      scheme: 'sms',
-      path: recipientPhone,
-      queryParameters: <String, String>{'body': messageBody},
+    // Uri(queryParameters:) encodes spaces as '+', which SMS apps show
+    // literally; encodeComponent uses %20 instead.
+    final Uri smsUri = Uri.parse(
+      "sms:$recipientPhone?body=${Uri.encodeComponent(messageBody)}",
     );
 
     try {
-      if (await canLaunchUrl(smsUri)) {
-        await launchUrl(smsUri);
-      } else {
-        // Fallback standard text intent query launcher
-        debugPrint(
-          "Could not launch SMS URI directly. Pre-packaging URL standard scheme.",
-        );
-        String urlString =
-            "sms:$recipientPhone?body=${Uri.encodeComponent(messageBody)}";
-        Uri parsedUrl = Uri.parse(urlString);
-        if (await canLaunchUrl(parsedUrl)) {
-          await launchUrl(parsedUrl);
-        } else {
-          debugPrint("Fail to launch SMS app for $recipientPhone");
-        }
+      // canLaunchUrl can wrongly return false on Android 11+, so just try launching.
+      final launched = await launchUrl(smsUri);
+      if (!launched) {
+        debugPrint("Fail to launch SMS app for $recipientPhone");
       }
     } catch (e) {
       debugPrint("SMS Launch Exception: $e");

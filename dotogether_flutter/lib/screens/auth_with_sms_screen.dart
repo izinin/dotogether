@@ -77,13 +77,6 @@ class _AuthWithSmsScreenState extends State<AuthWithSmsScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Opacity(
-            opacity: 0.4,
-            child: Image.asset(
-              'assets/images/splash.png',
-              fit: BoxFit.cover,
-            ),
-          ),
           SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.symmetric(

@@ -17,9 +17,9 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 
 # ios versioning follows the format CFBundleShortVersionString (version) and CFBundleVersion (build number)
-version: 1.0.0+4
+version: 1.0.0+5
 # android
-# version: 1.0.0+17
+# version: 1.0.0+18
 
 environment:
   sdk: '^3.12.2'
@@ -66,13 +66,12 @@ flutter_launcher_icons:
 
 flutter_native_splash:
   color: "#7C9BC7"
-  image: "assets/images/splash.png"
+  image: "assets/images/splash_icon.png"
+  fullscreen: true
   android_12:
     image: "assets/images/splash_icon.png"
     color: "#7C9BC7"
-  ios: true
-  android: true
-  web: false
+    icon_background_color: "#111111"
 
 dependency_overrides:
   flutter_secure_storage: ^10.0.0
