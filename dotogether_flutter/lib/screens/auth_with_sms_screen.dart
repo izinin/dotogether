@@ -56,7 +56,7 @@ class _AuthWithSmsScreenState extends State<AuthWithSmsScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: const Color(
-          0xFF2196F3,
+          0xFF5C88C5,
         ), // Vibrant Blue from screenshot
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -74,36 +74,355 @@ class _AuthWithSmsScreenState extends State<AuthWithSmsScreen> {
         centerTitle: true,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Step 1 Widget Row
-                _buildStepperRow(
-                  stepNumber: 1,
-                  title: 'Your phone number',
-                  subtitle: (_submittedPhone != null)
-                      ? 'you entered: $_submittedPhone'
-                      : 'Phone number with country code (+xxxx)',
-                  isActive: activeStep >= 1,
-                  isCompleted: activeStep > 1,
-                  child: activeStep == 1
-                      ? Column(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Opacity(
+            opacity: 0.4,
+            child: Image.asset(
+              'assets/images/splash.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+          SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 32.0,
+              ),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Step 1 Widget Row
+                    _buildStepperRow(
+                      stepNumber: 1,
+                      title: 'Your phone number',
+                      subtitle: (_submittedPhone != null)
+                          ? 'you entered: $_submittedPhone'
+                          : 'Phone number with country code (+xxxx)',
+                      isActive: activeStep >= 1,
+                      isCompleted: activeStep > 1,
+                      child: activeStep == 1
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                TextFormField(
+                                  controller: _phoneController,
+                                  keyboardType: TextInputType.phone,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    letterSpacing: 0.5,
+                                  ),
+                                  decoration: const InputDecoration(
+                                    hintText: 'example +123456789',
+                                    hintStyle: TextStyle(color: Colors.grey),
+                                    isDense: true,
+                                    contentPadding: EdgeInsets.symmetric(
+                                      vertical: 8,
+                                    ),
+                                    enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Color(0xFF5C88C5),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    focusedBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Color(0xFF5C88C5),
+                                        width: 2.0,
+                                      ),
+                                    ),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      return 'Please enter your phone number';
+                                    }
+                                    if (!value.startsWith('+')) {
+                                      return 'Invalid phone number. Must start with +';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                if (appState.phoneError.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    appState.phoneError,
+                                    style: const TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                                const SizedBox(height: 16),
+                                SizedBox(
+                                  width: 140,
+                                  height: 42,
+                                  child: ElevatedButton(
+                                    onPressed: appState.isLoading
+                                        ? null
+                                        : () {
+                                            setState(() {
+                                              _submittedPhone =
+                                                  _phoneController.text;
+                                            });
+                                            if (_formKey.currentState!
+                                                .validate()) {
+                                              appState.sendSmsCode(
+                                                _phoneController.text,
+                                              );
+                                            }
+                                          },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF5C88C5),
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      elevation: 2,
+                                    ),
+                                    child: appState.isLoading && activeStep == 1
+                                        ? const SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                    Colors.white,
+                                                  ),
+                                            ),
+                                          )
+                                        : const Text(
+                                            'CONTINUE',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : null,
+                    ),
+
+                    // Connector 1-2
+                    _buildConnectorLine(isCompleted: activeStep > 1),
+
+                    // Step 2 Widget Row
+                    _buildStepperRow(
+                      stepNumber: 2,
+                      title: 'Requesting SMS verification code',
+                      subtitle: activeStep == 2
+                          ? 'in progress ...'
+                          : (activeStep > 2
+                                ? 'code sent successfully'
+                                : 'pending phone number'),
+                      isActive: activeStep >= 2,
+                      isCompleted: activeStep > 2,
+                      child: activeStep == 2
+                          ? const Padding(
+                              padding: EdgeInsets.only(top: 8.0),
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Color(0xFF5C88C5),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 12),
+                                  Text(
+                                    'Requesting code from Firebase...',
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : null,
+                    ),
+
+                    // Connector 2-3
+                    _buildConnectorLine(isCompleted: activeStep > 2),
+
+                    // Step 3 Widget Row
+                    _buildStepperRow(
+                      stepNumber: 3,
+                      title: 'Verifying phone number',
+                      subtitle: activeStep == 3
+                          ? 'Check SMS we sent you'
+                          : 'pending SMS code request',
+                      isActive: activeStep >= 3,
+                      isCompleted: activeStep > 3,
+                      child: activeStep == 3
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 16),
+                                const Text(
+                                  '6-digit verification code',
+                                  style: TextStyle(
+                                    color: Color(0xFF5C88C5),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                TextFormField(
+                                  controller: _codeController,
+                                  keyboardType: TextInputType.number,
+                                  maxLength: 6,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    letterSpacing: 4.0,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  decoration: const InputDecoration(
+                                    hintText: '123456',
+                                    hintStyle: TextStyle(
+                                      color: Colors.grey,
+                                      letterSpacing: 0,
+                                    ),
+                                    counterText: '',
+                                    isDense: true,
+                                    contentPadding: EdgeInsets.symmetric(
+                                      vertical: 8,
+                                    ),
+                                    enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Color(0xFF5C88C5),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    focusedBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Color(0xFF5C88C5),
+                                        width: 2.0,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                if (appState.smsCodeError.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    appState.smsCodeError,
+                                    style: const TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 140,
+                                      height: 42,
+                                      child: ElevatedButton(
+                                        onPressed: appState.isLoading
+                                            ? null
+                                            : () async {
+                                                // On success, appState advances
+                                                // the stepper to step 4.
+                                                await appState.verifySmsCode(
+                                                  _codeController.text,
+                                                );
+                                              },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color(
+                                            0xFF5C88C5,
+                                          ),
+                                          foregroundColor: Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
+                                          ),
+                                          elevation: 2,
+                                        ),
+                                        child: appState.isLoading
+                                            ? const SizedBox(
+                                                width: 20,
+                                                height: 20,
+                                                child: CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                        Color
+                                                      >(
+                                                        Colors.white,
+                                                      ),
+                                                ),
+                                              )
+                                            : const Text(
+                                                'VERIFY',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  letterSpacing: 0.5,
+                                                ),
+                                              ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    TextButton(
+                                      onPressed: appState.isLoading
+                                          ? null
+                                          : () => appState.resetStepper(),
+                                      child: const Text(
+                                        'GO BACK',
+                                        style: TextStyle(
+                                          color: Colors.grey,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            )
+                          : null,
+                    ),
+
+                    // Connector 3-4
+                    _buildConnectorLine(isCompleted: activeStep > 3),
+
+                    // Step 4 Widget Row
+                    _buildStepperRow(
+                      stepNumber: 4,
+                      title: 'Checking user name',
+                      subtitle: activeStep == 4
+                          ? 'Confirm or edit the name on your profile'
+                          : (activeStep > 4
+                                ? 'Name: ${appState.userName}'
+                                : 'pending phone verification'),
+                      isActive: activeStep >= 4,
+                      isCompleted: activeStep > 4,
+                      child: () {
+                        if (activeStep != 4) return null;
+                        if (!_nameFieldInitialized) {
+                          // Prefill once with the name fetched from the
+                          // database; keep user edits afterwards, including
+                          // when returning here from step 5 via "Back".
+                          _nameController.text = appState.userName;
+                          _nameFieldInitialized = true;
+                        }
+                        return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            const SizedBox(height: 16),
                             TextFormField(
-                              controller: _phoneController,
-                              keyboardType: TextInputType.phone,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                letterSpacing: 0.5,
-                              ),
+                              controller: _nameController,
+                              style: const TextStyle(fontSize: 18),
                               decoration: const InputDecoration(
-                                hintText: 'example +123456789',
+                                hintText: 'Your name',
                                 hintStyle: TextStyle(color: Colors.grey),
                                 isDense: true,
                                 contentPadding: EdgeInsets.symmetric(
@@ -111,31 +430,22 @@ class _AuthWithSmsScreenState extends State<AuthWithSmsScreen> {
                                 ),
                                 enabledBorder: UnderlineInputBorder(
                                   borderSide: BorderSide(
-                                    color: Color(0xFF2196F3),
+                                    color: Color(0xFF5C88C5),
                                     width: 1.5,
                                   ),
                                 ),
                                 focusedBorder: UnderlineInputBorder(
                                   borderSide: BorderSide(
-                                    color: Color(0xFF2196F3),
+                                    color: Color(0xFF5C88C5),
                                     width: 2.0,
                                   ),
                                 ),
                               ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter your phone number';
-                                }
-                                if (!value.startsWith('+')) {
-                                  return 'Invalid phone number. Must start with +';
-                                }
-                                return null;
-                              },
                             ),
-                            if (appState.phoneError.isNotEmpty) ...[
+                            if (appState.userNameError.isNotEmpty) ...[
                               const SizedBox(height: 8),
                               Text(
-                                appState.phoneError,
+                                appState.userNameError,
                                 style: const TextStyle(
                                   color: Colors.red,
                                   fontSize: 12,
@@ -149,26 +459,18 @@ class _AuthWithSmsScreenState extends State<AuthWithSmsScreen> {
                               child: ElevatedButton(
                                 onPressed: appState.isLoading
                                     ? null
-                                    : () {
-                                        setState(() {
-                                          _submittedPhone =
-                                              _phoneController.text;
-                                        });
-                                        if (_formKey.currentState!.validate()) {
-                                          appState.sendSmsCode(
-                                            _phoneController.text,
-                                          );
-                                        }
-                                      },
+                                    : () => appState.submitUserName(
+                                        _nameController.text,
+                                      ),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF2196F3),
+                                  backgroundColor: const Color(0xFF5C88C5),
                                   foregroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   elevation: 2,
                                 ),
-                                child: appState.isLoading && activeStep == 1
+                                child: appState.isLoading
                                     ? const SizedBox(
                                         width: 20,
                                         height: 20,
@@ -190,348 +492,76 @@ class _AuthWithSmsScreenState extends State<AuthWithSmsScreen> {
                               ),
                             ),
                           ],
-                        )
-                      : null,
-                ),
+                        );
+                      }(),
+                    ),
 
-                // Connector 1-2
-                _buildConnectorLine(isCompleted: activeStep > 1),
+                    // Connector 4-5
+                    _buildConnectorLine(isCompleted: activeStep > 4),
 
-                // Step 2 Widget Row
-                _buildStepperRow(
-                  stepNumber: 2,
-                  title: 'Requesting SMS verification code',
-                  subtitle: activeStep == 2
-                      ? 'in progress ...'
-                      : (activeStep > 2
-                            ? 'code sent successfully'
-                            : 'pending phone number'),
-                  isActive: activeStep >= 2,
-                  isCompleted: activeStep > 2,
-                  child: activeStep == 2
-                      ? const Padding(
-                          padding: EdgeInsets.only(top: 8.0),
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Color(0xFF2196F3),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 12),
-                              Text(
-                                'Requesting code from Firebase...',
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : null,
-                ),
-
-                // Connector 2-3
-                _buildConnectorLine(isCompleted: activeStep > 2),
-
-                // Step 3 Widget Row
-                _buildStepperRow(
-                  stepNumber: 3,
-                  title: 'Verifying phone number',
-                  subtitle: activeStep == 3
-                      ? 'Check SMS we sent you'
-                      : 'pending SMS code request',
-                  isActive: activeStep >= 3,
-                  isCompleted: activeStep > 3,
-                  child: activeStep == 3
-                      ? Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 16),
-                            const Text(
-                              '6-digit verification code',
-                              style: TextStyle(
-                                color: Color(0xFF2196F3),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            TextFormField(
-                              controller: _codeController,
-                              keyboardType: TextInputType.number,
-                              maxLength: 6,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                letterSpacing: 4.0,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              decoration: const InputDecoration(
-                                hintText: '123456',
-                                hintStyle: TextStyle(
-                                  color: Colors.grey,
-                                  letterSpacing: 0,
-                                ),
-                                counterText: '',
-                                isDense: true,
-                                contentPadding: EdgeInsets.symmetric(
-                                  vertical: 8,
-                                ),
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Color(0xFF2196F3),
-                                    width: 1.5,
-                                  ),
-                                ),
-                                focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Color(0xFF2196F3),
-                                    width: 2.0,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            if (appState.smsCodeError.isNotEmpty) ...[
-                              const SizedBox(height: 8),
-                              Text(
-                                appState.smsCodeError,
-                                style: const TextStyle(
-                                  color: Colors.red,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                SizedBox(
-                                  width: 140,
-                                  height: 42,
-                                  child: ElevatedButton(
-                                    onPressed: appState.isLoading
-                                        ? null
-                                        : () async {
-                                            // On success, appState advances
-                                            // the stepper to step 4.
-                                            await appState.verifySmsCode(
-                                              _codeController.text,
-                                            );
-                                          },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF2196F3),
-                                      foregroundColor: Colors.white,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      elevation: 2,
-                                    ),
-                                    child: appState.isLoading
-                                        ? const SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              valueColor:
-                                                  AlwaysStoppedAnimation<Color>(
-                                                    Colors.white,
-                                                  ),
-                                            ),
-                                          )
-                                        : const Text(
-                                            'VERIFY',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              letterSpacing: 0.5,
-                                            ),
+                    // Step 5 Widget Row
+                    _buildStepperRow(
+                      stepNumber: 5,
+                      title: 'All set!',
+                      subtitle: activeStep == 5
+                          ? 'Welcome, ${appState.userName}'
+                          : 'pending user name',
+                      isActive: activeStep >= 5,
+                      isCompleted: false,
+                      child: activeStep == 5
+                          ? Padding(
+                              padding: const EdgeInsets.only(top: 16.0),
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                    width: 140,
+                                    height: 42,
+                                    child: ElevatedButton(
+                                      onPressed: _navigateToHome,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(
+                                          0xFF5C88C5,
+                                        ),
+                                        foregroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            4,
                                           ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                TextButton(
-                                  onPressed: appState.isLoading
-                                      ? null
-                                      : () => appState.resetStepper(),
-                                  child: const Text(
-                                    'GO BACK',
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        )
-                      : null,
-                ),
-
-                // Connector 3-4
-                _buildConnectorLine(isCompleted: activeStep > 3),
-
-                // Step 4 Widget Row
-                _buildStepperRow(
-                  stepNumber: 4,
-                  title: 'Checking user name',
-                  subtitle: activeStep == 4
-                      ? 'Confirm or edit the name on your profile'
-                      : (activeStep > 4
-                            ? 'Name: ${appState.userName}'
-                            : 'pending phone verification'),
-                  isActive: activeStep >= 4,
-                  isCompleted: activeStep > 4,
-                  child: () {
-                    if (activeStep != 4) return null;
-                    if (!_nameFieldInitialized) {
-                      // Prefill once with the name fetched from the
-                      // database; keep user edits afterwards, including
-                      // when returning here from step 5 via "Back".
-                      _nameController.text = appState.userName;
-                      _nameFieldInitialized = true;
-                    }
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _nameController,
-                          style: const TextStyle(fontSize: 18),
-                          decoration: const InputDecoration(
-                            hintText: 'Your name',
-                            hintStyle: TextStyle(color: Colors.grey),
-                            isDense: true,
-                            contentPadding: EdgeInsets.symmetric(vertical: 8),
-                            enabledBorder: UnderlineInputBorder(
-                              borderSide: BorderSide(
-                                color: Color(0xFF2196F3),
-                                width: 1.5,
-                              ),
-                            ),
-                            focusedBorder: UnderlineInputBorder(
-                              borderSide: BorderSide(
-                                color: Color(0xFF2196F3),
-                                width: 2.0,
-                              ),
-                            ),
-                          ),
-                        ),
-                        if (appState.userNameError.isNotEmpty) ...[
-                          const SizedBox(height: 8),
-                          Text(
-                            appState.userNameError,
-                            style: const TextStyle(
-                              color: Colors.red,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          width: 140,
-                          height: 42,
-                          child: ElevatedButton(
-                            onPressed: appState.isLoading
-                                ? null
-                                : () => appState.submitUserName(
-                                    _nameController.text,
-                                  ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF2196F3),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              elevation: 2,
-                            ),
-                            child: appState.isLoading
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
+                                        ),
+                                        elevation: 2,
+                                      ),
+                                      child: const Text(
+                                        'CONTINUE',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 0.5,
+                                        ),
                                       ),
                                     ),
-                                  )
-                                : const Text(
-                                    'CONTINUE',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 0.5,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  TextButton(
+                                    onPressed: () =>
+                                        appState.backToEditUserName(),
+                                    child: const Text(
+                                      'BACK',
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
-                          ),
-                        ),
-                      ],
-                    );
-                  }(),
-                ),
-
-                // Connector 4-5
-                _buildConnectorLine(isCompleted: activeStep > 4),
-
-                // Step 5 Widget Row
-                _buildStepperRow(
-                  stepNumber: 5,
-                  title: 'All set!',
-                  subtitle: activeStep == 5
-                      ? 'Welcome, ${appState.userName}'
-                      : 'pending user name',
-                  isActive: activeStep >= 5,
-                  isCompleted: false,
-                  child: activeStep == 5
-                      ? Padding(
-                          padding: const EdgeInsets.only(top: 16.0),
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 140,
-                                height: 42,
-                                child: ElevatedButton(
-                                  onPressed: _navigateToHome,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF2196F3),
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    elevation: 2,
-                                  ),
-                                  child: const Text(
-                                    'CONTINUE',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ),
+                                ],
                               ),
-                              const SizedBox(width: 12),
-                              TextButton(
-                                onPressed: () => appState.backToEditUserName(),
-                                child: const Text(
-                                  'BACK',
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : null,
+                            )
+                          : null,
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

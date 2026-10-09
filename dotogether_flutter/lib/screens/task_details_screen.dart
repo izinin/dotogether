@@ -70,7 +70,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF2196F3),
+        backgroundColor: const Color(0xFF5C88C5),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -86,7 +86,15 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
         ),
       ),
       body: Stack(
+        fit: StackFit.expand,
         children: [
+          Opacity(
+            opacity: 0.4,
+            child: Image.asset(
+              'assets/images/splash.png',
+              fit: BoxFit.cover,
+            ),
+          ),
           SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(24.0),
@@ -111,7 +119,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                   ? Icons.assignment_ind_outlined
                                   : Icons.assignment_outlined,
                               size: 24,
-                              color: const Color(0xFF2196F3),
+                              color: const Color(0xFF5C88C5),
                             ),
                             const SizedBox(width: 12),
                             Text(
@@ -176,7 +184,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                               '${(completion * 100).toInt()}% ($completedCount/$totalCount done)',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF2196F3),
+                                color: Color(0xFF5C88C5),
                               ),
                             ),
                           ],
@@ -190,7 +198,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                             minHeight: 8,
                             backgroundColor: Colors.grey.shade200,
                             valueColor: const AlwaysStoppedAnimation<Color>(
-                              Color(0xFF2196F3),
+                              Color(0xFF5C88C5),
                             ),
                           ),
                         ),
@@ -285,7 +293,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                       )
                                     : Checkbox(
                                         value: item.isCompleted,
-                                        activeColor: const Color(0xFF2196F3),
+                                        activeColor: const Color(0xFF5C88C5),
                                         onChanged: (val) {
                                           if (val != null) {
                                             _toggleTask(
@@ -365,7 +373,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                 child: const Center(
                   child: CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFF2196F3),
+                      Color(0xFF5C88C5),
                     ),
                   ),
                 ),
@@ -392,7 +400,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       case 'completed':
         return const Color(0xFF4CAF50);
       case 'in_progress':
-        return const Color(0xFF2196F3);
+        return const Color(0xFF5C88C5);
       default:
         return const Color(0xFFE53935);
     }

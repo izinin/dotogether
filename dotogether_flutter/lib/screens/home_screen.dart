@@ -31,7 +31,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF2196F3),
+        backgroundColor: const Color(0xFF5C88C5),
         title: const Text(
           'Do together',
           style: TextStyle(
@@ -51,87 +51,106 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 36.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // List Row 1: My tasks
-            _buildNavigationItem(
-              context,
-              icon: Icons.menu_book, // Matches mockup book/map outline icon
-              title: 'My tasks',
-              subtitle: tasksSubtitle,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        const ProjectsListScreen(isReceivedMode: true),
-                  ),
-                );
-              },
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Background illustration stretched to fill while preserving aspect ratio
+          Opacity(
+            opacity: 0.4,
+            child: Image.asset(
+              'assets/images/splash.png',
+              fit: BoxFit.cover,
             ),
-            const SizedBox(height: 28),
-
-            // List Row 2: My projects
-            _buildNavigationItem(
-              context,
-              icon: Icons.photo_outlined, // Matches mockup picture icon
-              title: 'My projects',
-              subtitle: projectsSubtitle,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        const ProjectsListScreen(isReceivedMode: false),
-                  ),
-                );
-              },
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 36.0,
             ),
-            const SizedBox(height: 28),
-
-            // List Row 3: Create project
-            _buildNavigationItem(
-              context,
-              icon:
-                  Icons.phone_enabled_outlined, // Matches mockup telephone icon
-              title: 'Create project',
-              subtitle: 'find and assign tasks',
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const FriendsScreen(),
-                  ),
-                );
-              },
-            ),
-
-            const Spacer(),
-            // Developer Notice (Premium styling)
-            if (appState.isDemoMode)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue.shade100),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.info_outline, color: Color(0xFF2196F3)),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Running in Demo Mode. Real-time lists and registration are simulated locally with screenshots mock data.',
-                        style: TextStyle(color: Colors.black87, fontSize: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // List Row 1: My tasks
+                _buildNavigationItem(
+                  context,
+                  icon: Icons.menu_book, // Matches mockup book/map outline icon
+                  title: 'My tasks',
+                  subtitle: tasksSubtitle,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const ProjectsListScreen(isReceivedMode: true),
                       ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
-              ),
-          ],
-        ),
+                const SizedBox(height: 28),
+
+                // List Row 2: My projects
+                _buildNavigationItem(
+                  context,
+                  icon: Icons.photo_outlined, // Matches mockup picture icon
+                  title: 'My projects',
+                  subtitle: projectsSubtitle,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const ProjectsListScreen(isReceivedMode: false),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 28),
+
+                // List Row 3: Create project
+                _buildNavigationItem(
+                  context,
+                  icon: Icons
+                      .phone_enabled_outlined, // Matches mockup telephone icon
+                  title: 'Create project',
+                  subtitle: 'friends to tasks',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const FriendsScreen(),
+                      ),
+                    );
+                  },
+                ),
+
+                const Spacer(),
+                // Developer Notice (Premium styling)
+                if (appState.isDemoMode)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.shade100),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.info_outline, color: Color(0xFF5C88C5)),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Running in Demo Mode. Real-time lists and registration are simulated locally with screenshots mock data.',
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

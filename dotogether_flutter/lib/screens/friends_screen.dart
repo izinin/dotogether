@@ -91,7 +91,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF2196F3),
+        backgroundColor: const Color(0xFF5C88C5),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -106,89 +106,101 @@ class _FriendsScreenState extends State<FriendsScreen> {
           ),
         ),
       ),
-      body: Column(
+      body: Stack(
+        fit: StackFit.expand,
         children: [
-          // Search Input Bar
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (val) {
-                  setState(() {
-                    _searchQuery = val;
-                  });
-                },
-                decoration: InputDecoration(
-                  hintText: 'Search friends or phone numbers...',
-                  prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                  suffixIcon: _searchQuery.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear, color: Colors.grey),
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() {
-                              _searchQuery = "";
-                            });
-                          },
-                        )
-                      : null,
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-              ),
+          Opacity(
+            opacity: 0.4,
+            child: Image.asset(
+              'assets/images/splash.png',
+              fit: BoxFit.cover,
             ),
           ),
-
-          // Contacts List
-          Expanded(
-            child: appState.isLoadingContacts
-                ? const Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Color(0xFF2196F3),
-                      ),
+          Column(
+            children: [
+              // Search Input Bar
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (val) {
+                      setState(() {
+                        _searchQuery = val;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Search friends or phone numbers...',
+                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, color: Colors.grey),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _searchQuery = "";
+                                });
+                              },
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 14),
                     ),
-                  )
-                : itemCount == 0
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.people_outline,
-                          size: 64,
-                          color: Colors.grey.shade300,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _searchQuery.isNotEmpty
-                              ? 'No contacts match your search.'
-                              : 'No contacts found.',
-                          style: TextStyle(
-                            color: Colors.grey.shade500,
-                            fontSize: 16,
+                  ),
+                ),
+              ),
+
+              // Contacts List
+              Expanded(
+                child: appState.isLoadingContacts
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Color(0xFF5C88C5),
                           ),
                         ),
-                      ],
-                    ),
-                  )
-                : ListView.separated(
-                    itemCount: itemCount,
-                    separatorBuilder: (context, index) =>
-                        const Divider(height: 1, indent: 72),
-                    itemBuilder: (context, index) {
-                      if (showPhoneBookPicker &&
-                          index == filteredContacts.length) {
-                        return _buildPickFromPhoneBookTile();
-                      }
-                      return _buildContactTile(filteredContacts[index]);
-                    },
-                  ),
+                      )
+                    : itemCount == 0
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.people_outline,
+                              size: 64,
+                              color: Colors.grey.shade300,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              _searchQuery.isNotEmpty
+                                  ? 'No contacts match your search.'
+                                  : 'No contacts found.',
+                              style: TextStyle(
+                                color: Colors.grey.shade500,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.separated(
+                        itemCount: itemCount,
+                        separatorBuilder: (context, index) =>
+                            const Divider(height: 1, indent: 72),
+                        itemBuilder: (context, index) {
+                          if (showPhoneBookPicker &&
+                              index == filteredContacts.length) {
+                            return _buildPickFromPhoneBookTile();
+                          }
+                          return _buildContactTile(filteredContacts[index]);
+                        },
+                      ),
+              ),
+            ],
           ),
         ],
       ),
@@ -237,7 +249,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
         child: Text(
           firstLetter,
           style: const TextStyle(
-            color: Color(0xFF2196F3),
+            color: Color(0xFF5C88C5),
             fontWeight: FontWeight.bold,
           ),
         ),

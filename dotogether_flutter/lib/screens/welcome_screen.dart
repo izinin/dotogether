@@ -38,7 +38,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
 
     final ButtonStyle normalButtonStyle = ElevatedButton.styleFrom(
-      backgroundColor: const Color(0xFF2196F3),
+      backgroundColor: const Color(0xFF5C88C5),
       foregroundColor: Colors.white,
       minimumSize: const Size(double.infinity, 50),
       shape: const StadiumBorder(),
@@ -46,10 +46,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFE8EEF5), // Light steel blue
       appBar: AppBar(
         backgroundColor: const Color(
-          0xFF2196F3,
+          0xFF5C88C5,
         ), // Vibrant Blue
         title: const Text(
           'Welcome',
@@ -75,13 +75,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   width: 90,
                   height: 90,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2196F3).withValues(alpha: 0.1),
+                    color: const Color(0xFF5C88C5).withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.handshake_outlined,
                     size: 48,
-                    color: Color(0xFF2196F3),
+                    color: Color(0xFF5C88C5),
                   ),
                 ),
               ),
@@ -111,7 +111,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.info_outline, color: Color(0xFF2196F3)),
+                    Icon(Icons.info_outline, color: Color(0xFF5C88C5)),
                     SizedBox(width: 12),
                     Text(
                       'available only on Android and iOS devices',
@@ -128,7 +128,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     padding: EdgeInsets.symmetric(vertical: 24.0),
                     child: CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        Color(0xFF2196F3),
+                        Color(0xFF5C88C5),
                       ),
                     ),
                   ),

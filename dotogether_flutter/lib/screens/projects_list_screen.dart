@@ -24,7 +24,7 @@ class ProjectsListScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF2196F3),
+        backgroundColor: const Color(0xFF5C88C5),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -40,56 +40,68 @@ class ProjectsListScreen extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: RefreshIndicator(
-        onRefresh: appState.refreshProjects,
-        child: projects.isEmpty
-            ? ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.6,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            isReceivedMode
-                                ? Icons.assignment_outlined
-                                : Icons.assignment_turned_in_outlined,
-                            size: 64,
-                            color: Colors.grey.shade300,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Opacity(
+            opacity: 0.4,
+            child: Image.asset(
+              'assets/images/splash.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+          RefreshIndicator(
+            onRefresh: appState.refreshProjects,
+            child: projects.isEmpty
+                ? ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.6,
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                isReceivedMode
+                                    ? Icons.assignment_outlined
+                                    : Icons.assignment_turned_in_outlined,
+                                size: 64,
+                                color: Colors.grey.shade300,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                isReceivedMode
+                                    ? 'You do not have any tasks assigned to you.'
+                                    : 'You have not created any projects yet.',
+                                style: TextStyle(
+                                  color: Colors.grey.shade500,
+                                  fontSize: 15,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            isReceivedMode
-                                ? 'You do not have any tasks assigned to you.'
-                                : 'You have not created any projects yet.',
-                            style: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: 15,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
+                  )
+                : ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(vertical: 20.0),
+                    itemCount: projects.length,
+                    itemBuilder: (context, index) {
+                      final project = projects[index];
+                      return _buildProjectTile(
+                        pageTitle,
+                        context,
+                        project,
+                        isReceivedMode,
+                      );
+                    },
                   ),
-                ],
-              )
-            : ListView.builder(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(vertical: 20.0),
-                itemCount: projects.length,
-                itemBuilder: (context, index) {
-                  final project = projects[index];
-                  return _buildProjectTile(
-                    pageTitle,
-                    context,
-                    project,
-                    isReceivedMode,
-                  );
-                },
-              ),
+          ),
+        ],
       ),
     );
   }
@@ -114,7 +126,7 @@ class ProjectsListScreen extends StatelessWidget {
     } else if (project.overallStatus == 'in_progress') {
       statusIcon =
           Icons.history; // Matches clock/time logo from David Taylor item
-      iconColor = const Color(0xFF2196F3); // Premium Blue
+      iconColor = const Color(0xFF5C88C5); // Premium Blue
     } else {
       // Pending
       statusIcon = Icons.calendar_today; // Calendar with date indicator

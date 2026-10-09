@@ -41,11 +41,11 @@ ThemeData _buildTheme(Brightness brightness) {
   final isDark = brightness == Brightness.dark;
   return ThemeData(
     useMaterial3: true,
-    primaryColor: const Color(0xFF2196F3),
+    primaryColor: const Color(0xFF5C88C5),
     scaffoldBackgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: const Color(0xFF2196F3),
-      primary: const Color(0xFF2196F3),
+      seedColor: const Color(0xFF5C88C5),
+      primary: const Color(0xFF5C88C5),
       secondary: Colors.blueAccent,
       brightness: brightness,
     ),
