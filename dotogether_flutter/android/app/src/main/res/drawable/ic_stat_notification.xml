@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
+    <!-- White silhouette of assets/icon/app_icon.png (Android tints small notification icons) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M256,85H768A85,85 0 0 1 853,170V853A85,85 0 0 1 768,938H256A85,85 0 0 1 171,853V170A85,85 0 0 1 256,85ZM256,148A22,22 0 0 0 234,170V853A22,22 0 0 0 256,875H768A22,22 0 0 0 790,853V170A22,22 0 0 0 768,148Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M320,85H427A85,85 0 0 1 597,85H704V170A43,43 0 0 1 661,213H363A43,43 0 0 1 320,170ZM512,42A43,43 0 1 0 512,128A43,43 0 1 0 512,42Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M318,550L371,497L461,588L653,397L706,450L463,693Z" />
+</vector>

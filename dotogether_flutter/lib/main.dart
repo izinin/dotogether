@@ -164,7 +164,7 @@ class _DoTogetherAppState extends State<DoTogetherApp> {
                 'high_importance_channel',
                 'High Importance Notifications',
                 channelDescription: 'Channel for high importance notifications',
-                icon: '@mipmap/ic_launcher', // Default system app icon
+                icon: 'ic_stat_notification',
               ),
             ),
           );
