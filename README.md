@@ -2,7 +2,9 @@
 
 ## deployment
 * deploy: `scloud launch`
+* see logs: `scloud log`
 * check urls: `scloud domain list`
+* show defined secrets: `scloud password list`
 * get serverpod dbase creds: `serverpod cloud db connection`
 * Serverpod Cloud project ID is: `dotogether`
 When the server has started, you can access it at:
