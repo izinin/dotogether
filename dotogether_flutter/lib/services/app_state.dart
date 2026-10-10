@@ -453,15 +453,22 @@ class AppState extends ChangeNotifier {
     _isLoadingContacts = true;
     notifyListeners();
 
+    List<Contact> serverContacts = [];
     try {
-      _contacts = await client.contact.getContacts();
-      _contacts = [
-        ..._contacts,
-        ...BypassSmsVerification.getSimulatedTestContacts(_currentPhoneNumber),
-      ];
+      serverContacts = await client.contact.getContacts();
     } catch (e) {
       debugPrint('Error loading contacts: $e');
     }
+
+    // Test numbers are added client-side regardless of server data, skipping
+    // any the server already returned.
+    final knownNumbers = serverContacts.map((c) => c.phoneNumber).toSet();
+    _contacts = [
+      ...serverContacts,
+      ...BypassSmsVerification.getSimulatedTestContacts(
+        _currentPhoneNumber,
+      ).where((c) => !knownNumbers.contains(c.phoneNumber)),
+    ];
 
     _isLoadingContacts = false;
     notifyListeners();

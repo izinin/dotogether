@@ -24,21 +24,10 @@ class BypassSmsVerification {
   /// creation can be exercised end-to-end without needing several real
   /// phone numbers to test with.
   static List<Contact> getSimulatedTestContacts(String? currentPhone) {
-    if (currentPhone == null ||
-        !BypassSmsVerification.predefinedTestPhoneNumbers.any(
-          (c) => c.phoneNumber == currentPhone,
-        )) {
-      return [];
-    }
-
-    final existingNumbers = predefinedTestPhoneNumbers
-        .map((c) => c.phoneNumber)
-        .toSet();
+    if (!isBypassedPhoneNumber(currentPhone)) return [];
 
     return predefinedTestPhoneNumbers
-        .where(
-          (phone) => !existingNumbers.contains(phone.phoneNumber),
-        )
+        .where((c) => c.phoneNumber != currentPhone)
         .toList();
   }
 
