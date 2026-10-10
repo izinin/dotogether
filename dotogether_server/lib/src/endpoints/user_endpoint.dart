@@ -120,4 +120,50 @@ class UserEndpoint extends Endpoint {
       ),
     );
   }
+
+  /// Permanently deletes the current user's account and associated data:
+  /// projects they own or are assigned to, their profile, and the auth user.
+  Future<void> deleteAccount(Session session) async {
+    final authUserId = session.authenticated?.authUserId;
+    if (authUserId == null) {
+      throw StateError('User is not authenticated');
+    }
+
+    await session.db.transaction((transaction) async {
+      final contacts = await Contact.db.find(
+        session,
+        where: (t) => t.registeredUserId.equals(authUserId),
+        transaction: transaction,
+      );
+      final contactIds = contacts.map((c) => c.id!).toSet();
+
+      if (contactIds.isNotEmpty) {
+        await Project.db.deleteWhere(
+          session,
+          where: (t) =>
+              t.ownerId.inSet(contactIds) | t.assigneeId.inSet(contactIds),
+          transaction: transaction,
+        );
+      }
+
+      for (final contact in contacts) {
+        await Contact.db.updateRow(
+          session,
+          contact.copyWith(isRegistered: false, registeredUserId: null),
+          transaction: transaction,
+        );
+      }
+
+      await AppUserData.db.deleteWhere(
+        session,
+        where: (t) => t.authUserId.equals(authUserId),
+        transaction: transaction,
+      );
+    });
+
+    await AuthServices.instance.authUsers.delete(
+      session,
+      authUserId: authUserId,
+    );
+  }
 }

@@ -273,6 +273,17 @@ class AppState extends ChangeNotifier {
     resetStepper();
   }
 
+  /// Deletes the account and all its data on the server, then signs out locally.
+  Future<void> deleteAccount() async {
+    await client.user.deleteAccount();
+    try {
+      await FirebaseAuth.instance.currentUser?.delete();
+    } catch (e) {
+      debugPrint('Error deleting Firebase user: $e');
+    }
+    await signOut();
+  }
+
   // ================= AUTHENTICATION FLOW =================
 
   /// Step 1: Send SMS Verification Code

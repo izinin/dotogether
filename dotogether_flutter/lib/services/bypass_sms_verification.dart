@@ -7,7 +7,7 @@ class BypassSmsVerification {
   /// Predefined phone numbers that, when entered in non-demo mode, skip real
   /// SMS verification and go straight to the user name input step. Useful
   /// for manual/automated testing without needing a real SMS to arrive.
-  static List<Contact> predefinedTestPhoneNumbers = [
+  static List<Contact> _getSimulatedTestContacts = [
     Contact(
       phoneNumber: '+35811111111',
       name: 'Test Contact 1',
@@ -19,21 +19,21 @@ class BypassSmsVerification {
   ];
 
   /// When the current user is signed in with one of the
-  /// [predefinedTestPhoneNumbers], surface the *other* predefined numbers
+  /// [_getSimulatedTestContacts], surface the *other* predefined numbers
   /// as "simulated contact" entries in the contact list, so project
   /// creation can be exercised end-to-end without needing several real
   /// phone numbers to test with.
   static List<Contact> getSimulatedTestContacts(String? currentPhone) {
     if (!isBypassedPhoneNumber(currentPhone)) return [];
 
-    return predefinedTestPhoneNumbers
+    return _getSimulatedTestContacts
         .where((c) => c.phoneNumber != currentPhone)
         .toList();
   }
 
   static bool isBypassedPhoneNumber(String? phoneNumber) {
     return phoneNumber != null &&
-        predefinedTestPhoneNumbers.any((c) => c.phoneNumber == phoneNumber);
+        _getSimulatedTestContacts.any((c) => c.phoneNumber == phoneNumber);
   }
 
   /// Sign in a predefined test phone number without going through real

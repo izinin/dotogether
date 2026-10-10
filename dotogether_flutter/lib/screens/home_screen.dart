@@ -2,6 +2,7 @@ import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/app_state.dart';
+import '../services/bypass_sms_verification.dart';
 import 'projects_list_screen.dart';
 import 'friends_screen.dart';
 import 'welcome_screen.dart';
@@ -120,6 +121,18 @@ class HomeScreen extends StatelessWidget {
                   },
                 ),
 
+                if (!appState.isDemoMode) ...[
+                  const SizedBox(height: 28),
+                  _buildNavigationItem(
+                    context,
+                    icon: Icons.delete_forever_outlined,
+                    title: 'Delete my account',
+                    subtitle: 'remove your account and all data',
+                    color: Colors.red.shade700,
+                    onTap: () => _showDeleteAccountDialog(context, appState),
+                  ),
+                ],
+
                 const Spacer(),
                 // Developer Notice (Premium styling)
                 if (appState.isDemoMode)
@@ -161,6 +174,7 @@ class HomeScreen extends StatelessWidget {
     required String title,
     required String subtitle,
     required VoidCallback onTap,
+    Color? color,
   }) {
     return InkWell(
       onTap: onTap,
@@ -171,7 +185,7 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Icon container with modern grey coloring
-            Icon(icon, size: 28, color: Colors.grey.shade600),
+            Icon(icon, size: 28, color: color ?? Colors.grey.shade600),
             const SizedBox(width: 24),
             // Text details
             Expanded(
@@ -180,10 +194,10 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+                      color: color ?? Colors.black87,
                       letterSpacing: 0.1,
                     ),
                   ),
@@ -197,6 +211,60 @@ class HomeScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showDeleteAccountDialog(BuildContext context, AppState appState) {
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: Icon(
+          Icons.warning_amber_rounded,
+          color: Colors.red.shade700,
+          size: 36,
+        ),
+        title: Text(
+          'Delete my account',
+          style: TextStyle(color: Colors.red.shade700),
+        ),
+        content: const Text(
+          'Are you sure you want to delete your account and all your data? '
+          'This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('CANCEL', style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(dialogContext).pop();
+              try {
+                await appState.deleteAccount();
+                navigator.pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => const WelcomeScreen(),
+                  ),
+                  (route) => false,
+                );
+              } catch (e) {
+                messenger.showSnackBar(
+                  SnackBar(content: Text('Could not delete account: $e')),
+                );
+              }
+            },
+            child: Text(
+              'DELETE',
+              style: TextStyle(
+                color: Colors.red.shade700,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
