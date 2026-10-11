@@ -1,4 +1,4 @@
-# a TODO collaboration tool with friends
+# A collaborative to-do list application for friends.
 ## available on Google Play and Apple Store
 
 
@@ -10,6 +10,10 @@
  </td>
  </tr>
 </table>
+
+---
+#### Stop chasing friends in group chats and start getting things done together with an effortless task manager built for trips, party planning, and household chores. Pick any friend directly from your phone’s contacts to assign a task—if they don't have the app, an instant text message invites them to join, with all future updates switching to push notifications. Track progress automatically without follow-up texts, or try our interactive web demo to see how easy collaboration is before you install!
+---
 
 [need designer?](https://nataliazinina.artstation.com/)
 
