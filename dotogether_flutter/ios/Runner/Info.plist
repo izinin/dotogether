@@ -29,7 +29,7 @@
 				<string>Editor</string>
 				<key>CFBundleURLSchemes</key>
 				<array>
-					<string>com.googleusercontent.apps.908030423310-bv60rru0qc5pp1lt1qaoff71ubc9k6q8</string>
+					<string>app-1-908030423310-ios-7f9f58b3fa8834b31a275f</string>
 				</array>
 			</dict>
 		</array>
@@ -69,6 +69,8 @@
 		<string>LaunchScreen</string>
 		<key>UIMainStoryboardFile</key>
 		<string>Main</string>
+		<key>UIStatusBarHidden</key>
+		<true/>
 		<key>UISupportedInterfaceOrientations</key>
 		<array>
 			<string>UIInterfaceOrientationPortrait</string>
@@ -82,8 +84,6 @@
 			<string>UIInterfaceOrientationLandscapeLeft</string>
 			<string>UIInterfaceOrientationLandscapeRight</string>
 		</array>
-		<key>UIStatusBarHidden</key>
-		<true/>
 		<key>UIViewControllerBasedStatusBarAppearance</key>
 		<false/>
 	</dict>
