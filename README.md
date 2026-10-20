@@ -6,7 +6,7 @@
  <tr>
  <td> <a href='https://play.google.com/store/apps/details?id=com.zindolla.dotogether&hl=en'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png' width="200px"/> </a>
  </td>
- <td> (Apple Store coming soon) <!-- a href="" style="display: inline-block; overflow: hidden; border-radius: 13px; width: 250px; height: 83px;"><img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83&amp;releaseDate=1573689600" alt="Download on the App Store" style="border-radius: 13px; width: 250px; height: 53px;"></a -->  
+ <td><a href="https://apps.apple.com/us/app/palplan/id6824174635" style="display: inline-block; overflow: hidden; border-radius: 13px; width: 250px; height: 83px;"><img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83&amp;releaseDate=1792488487" alt="Download on the App Store" style="border-radius: 13px; width: 250px; height: 53px;"></a>  
  </td>
  </tr>
 </table>
