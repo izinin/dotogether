@@ -539,7 +539,7 @@ class AppState extends ChangeNotifier {
         "${description.isNotEmpty ? 'Details: $description\n' : ''}\n\n"
         "Could you please complete it at your earliest convenience in DoTogether app? Get it from the Play Store or Apple App Store:\n"
         "https://play.google.com/store/apps/details?id=com.dotogether.app\n"
-        "https://apps.apple.com/us/app/world-tunes/id1485312499";
+        "https://apps.apple.com/us/app/palplan/id6824174635";
 
     return {'recipient': normalizedPhone, 'body': smsMessage};
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/app_state.dart';
 import 'auth_with_sms_screen.dart';
 import 'home_screen.dart';
@@ -114,8 +115,28 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     Icon(Icons.info_outline, color: Color(0xFF5C88C5)),
                     SizedBox(width: 12),
                     Text(
-                      'available only on Android and iOS devices',
+                      'available only on mobile devices',
                       style: TextStyle(color: Colors.black87, fontSize: 12),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 16,
+                  runSpacing: 12,
+                  children: [
+                    _storeBadge(
+                      url:
+                          'https://play.google.com/store/apps/details?id=com.zindolla.dotogether&hl=en',
+                      asset: 'assets/images/googleplay_badge.png',
+                      semanticLabel: 'Get it on Google Play',
+                    ),
+                    _storeBadge(
+                      url: 'https://apps.apple.com/us/app/palplan/id6824174635',
+                      asset: 'assets/images/apple_store_badge.png',
+                      semanticLabel: 'Download on the App Store',
                     ),
                   ],
                 ),
@@ -195,6 +216,25 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               const SizedBox(height: 48),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _storeBadge({
+    required String url,
+    required String asset,
+    required String semanticLabel,
+  }) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => launchUrl(Uri.parse(url)),
+        child: Image.asset(
+          asset,
+          height: 50,
+          fit: BoxFit.contain,
+          semanticLabel: semanticLabel,
         ),
       ),
     );
